@@ -7,7 +7,6 @@ import com.example.blogproject.model.User;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Component;
-import org.springframework.ui.ModelMap;
 
 @Component
 @RequiredArgsConstructor
@@ -25,5 +24,10 @@ public class UserMapperImpl implements UserMapper {
         User user = modelMapper.map(userDtoRequest, User.class);
         user.setId(userId);
         return user;
+    }
+
+    @Override
+    public User mapToUser(UserDtoResponse userDtoResponse) {
+        return modelMapper.map(userDtoResponse,User.class);
     }
 }
