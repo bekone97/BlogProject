@@ -1,6 +1,9 @@
 package com.example.blogproject.service.impl;
 
-import com.example.blogproject.dto.PostDtoResponse;
+import com.example.blogproject.dto.CommentDtoRequest;
+import com.example.blogproject.dto.CommentDtoResponse;
+import com.example.blogproject.dto.UserDtoResponse;
+import com.example.blogproject.exception.ResourceNotFoundException;
 import com.example.blogproject.mapper.CommentMapper;
 import com.example.blogproject.model.Comment;
 import com.example.blogproject.model.Post;
@@ -14,7 +17,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Objects;
 
 @Service
 @Slf4j
@@ -25,41 +27,68 @@ public class CommentServiceImpl implements CommentService {
     private final PostService postService;
     private final UserService userService;
     private final CommentMapper commentMapper;
+    private final SequenceGeneratorService sequenceGeneratorService;
 
 
     @Override
-    public List<Comment> getCommentsByPost(Long postId) {
+    public List<CommentDtoResponse> findAllCommentsByPost(Long postId) {
         log.info("Get all comments of post : {}",postId);
         return postService.getById(postId).getComments();
     }
 
     @Override
-    @Transactional
-    public Comment save(Comment comment, Long postId) {
-        PostDtoResponse post = postService.getById(postId);
-        Comment comment1 = commentRepository.save(comment);
-        post.getComments().add(comment);
-//        postService.save(commentMapper.mapToPhoneDtoRequest(post));
-        return comment1;
+    public CommentDtoResponse findCommentByPostIdAndCommentId(Long postId, Long commentId) {
+        log.info("Get comment with id : {} from post with id : {}",commentId,postId);
+        return postService.getById(postId).getComments().stream()
+                .filter(comment -> comment.getId().equals(commentId))
+                .findFirst()
+                .orElseThrow(()->new ResourceNotFoundException(Comment.class,"id",commentId,Post.class,"id",postId));
     }
 
     @Override
     @Transactional
-    public Comment update(Long commentId, Long postId, Comment comment) {
-        return postService.getById(postId).getComments().stream()
-                .filter(comment1 -> comment1.getId().equals(comment.getId()))
-                .findFirst()
-                .map(comment1 -> commentRepository.save(comment))
-                .orElseThrow(RuntimeException::new);
+    public CommentDtoResponse save(CommentDtoRequest commentDtoRequest, Long postId) {
+        log.info("Save new comment by : {} to post with id : {}",commentDtoRequest,postId);
+        if (postService.existsById(postId)) {
+            UserDtoResponse userComment = userService.getById(commentDtoRequest.getUserId());
+            Comment newComment = commentMapper.mapToComment(sequenceGeneratorService.generateSequence(
+                    Comment.SEQUENCE_NAME),userComment,commentDtoRequest,postId );
+            newComment=commentRepository.save(newComment);
+            postService.addCommentToPost(postId,newComment);
+            return commentMapper.mapToCommentDtoResponse(newComment);
+        }
+        throw new ResourceNotFoundException(Post.class,"id",postId);
+    }
+
+    @Override
+    @Transactional
+    public CommentDtoResponse update(Long commentId, Long postId, CommentDtoRequest commentDtoRequest) {
+        log.info("Update comment with id : {} by : {} from post with id : {}",commentId,commentDtoRequest,postId);
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(()->{
+                    log.error("Comment with id : {} wasn't found",commentId);
+                    return  new ResourceNotFoundException(Comment.class,"id",commentId);
+                });
+        if (postService.existsByPostIdAndComment(postId,comment)){
+            comment = commentMapper.mapToComment(comment.getId(),comment.getUser(),commentDtoRequest);
+            return commentMapper.mapToCommentDtoResponse(commentRepository.save(comment));
+        }
+        throw new ResourceNotFoundException(Comment.class,"id",commentId,Post.class,"id",postId);
     }
 
     @Override
     public void delete(Long commentId, Long postId) {
-        Comment deletedComment = postService.getById(postId)
-                .getComments().stream()
-                .filter(comment -> Objects.equals(comment.getId(), commentId))
-                .findAny()
-                .orElseThrow(RuntimeException::new);
-        commentRepository.delete(deletedComment);
+        log.info("Delete comment by id : {}  from post with id : {}", commentId,postId);
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(()->{
+                    log.error("Comment with id : {} wasn't found",commentId);
+                    return  new ResourceNotFoundException(Comment.class,"id",commentId);
+                });
+        if (postService.existsByPostIdAndComment(postId,comment)){
+            commentRepository.delete(comment);
+            return;
+        }
+            throw new ResourceNotFoundException(Comment.class, "id", commentId, Post.class, "id", postId);
+
     }
 }

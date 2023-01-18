@@ -22,7 +22,7 @@ public class InitCommentCollection {
     public void beforeExecution(){
         mongoTemplate.createCollection("comment", CollectionOptions.empty()
                         .validator(Validator.schema(MongoJsonSchema.builder()
-                                        .required("text","user","post")
+                                        .required("text","user")
                                 .properties(
                                         JsonSchemaProperty.int64("id"),
                                         JsonSchemaProperty.string("text"),

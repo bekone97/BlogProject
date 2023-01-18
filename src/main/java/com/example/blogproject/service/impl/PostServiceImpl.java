@@ -5,6 +5,7 @@ import com.example.blogproject.dto.PostDtoResponse;
 import com.example.blogproject.dto.UserDtoResponse;
 import com.example.blogproject.exception.ResourceNotFoundException;
 import com.example.blogproject.mapper.PostMapper;
+import com.example.blogproject.model.Comment;
 import com.example.blogproject.model.Post;
 import com.example.blogproject.model.User;
 import com.example.blogproject.repository.PostRepository;
@@ -15,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -64,7 +66,7 @@ public class PostServiceImpl implements PostService {
         log.info("Check existing post by id : {} and update it by : {}",postId,postDtoRequest);
         UserDtoResponse userDtoResponse = userService.getById(postDtoRequest.getUserId());
         return postRepository.findById(postId)
-                .map(post -> postMapper.mapToPost(postId,postDtoRequest,userDtoResponse))
+                .map(post -> postMapper.mapToPost(postId,postDtoRequest,userDtoResponse,post.getComments()))
                 .map(postRepository::save)
                 .map(postMapper::mapToPostDtoResponse)
                 .orElseThrow(()->{
@@ -91,4 +93,31 @@ public class PostServiceImpl implements PostService {
         }
         throw new ResourceNotFoundException(User.class,"id",userId);
     }
+
+    @Override
+    public boolean existsById(Long postId) {
+        log.info("Check existing by id : {} ",postId);
+        return postRepository.existsById(postId);
+    }
+
+    @Override
+    @Transactional
+    public void addCommentToPost(Long postId, Comment newComment) {
+        Post savedPost = postRepository.findById(postId)
+                .map(post -> {
+                    if (post.getComments()==null){
+                        post.setComments(List.of(newComment));
+                    }else {
+                        post.getComments().add(newComment);
+                    }
+                    return postRepository.save(post);
+                })
+                .orElseThrow(() -> new ResourceNotFoundException(Post.class, "id", postId));
+    }
+
+    @Override
+    public boolean existsByPostIdAndComment(Long postId, Comment comment) {
+        return postRepository.existsByIdAndCommentsContaining(postId,comment);
+    }
+
 }

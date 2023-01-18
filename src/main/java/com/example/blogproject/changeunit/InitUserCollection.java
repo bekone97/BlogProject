@@ -36,7 +36,7 @@ public class InitUserCollection {
                                         JsonSchemaProperty.string("username"),
                                         JsonSchemaProperty.string("password"),
                                         JsonSchemaProperty.string("email"),
-                                        JsonSchemaProperty.array("posts")
+                                        JsonSchemaProperty.date("date_of_birth")
                                 )
                         .build())))
                 .createIndex(new Document("email",1), new IndexOptions().name("email").unique(true));

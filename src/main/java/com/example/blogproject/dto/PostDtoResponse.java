@@ -19,5 +19,5 @@ public class PostDtoResponse {
     private String img;
     private String audio;
     private String video;
-    private List<Comment> comments;
+    private List<CommentDtoResponse> comments;
 }

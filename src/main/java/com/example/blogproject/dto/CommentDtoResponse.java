@@ -5,20 +5,16 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDate;
-
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class UserDtoResponse {
-    private Long id;
+public class CommentDtoResponse {
 
-    private String username;
+    private Long Id;
 
-    private String password;
+    private String text;
 
-    private String email;
+    private UserDtoResponse userDtoResponse;
 
-    private LocalDate dateOfBirth;
 }
