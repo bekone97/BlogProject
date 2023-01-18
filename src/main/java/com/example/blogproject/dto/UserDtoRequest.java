@@ -26,10 +26,10 @@ public class UserDtoRequest {
     @Size(min = 6, message = "{user.validation.password.min}")
     private String password;
 
-    @Email(message = "{user.validation.password.email}")
+    @Email(message = "{user.validation.email}")
     private String email;
 
     @UserAgeConstraint
-    @NotNull
+    @NotNull(message = "{user.validation.dateOfBirth.notNull}")
     private LocalDate dateOfBirth;
 }
