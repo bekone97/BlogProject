@@ -1,0 +1,12 @@
+spring:
+  data:
+    mongodb:
+      database: ${DB_NAME:blog_db}
+      port: ${DB_PORT:27017}
+      host: ${DB_HOST:localhost}
+      username: ${DB_USER:SomeUser}
+      password: ${DB_PASSWORD:SomePassword}
+mongock:
+  migration-scan-package: com.example.blogproject.changeunit
+server:
+  port: 8080
