@@ -16,6 +16,7 @@ import java.util.List;
 @Configuration
 @RequiredArgsConstructor
 @EnableMongock
+
 public class Config {
 
     @Bean
