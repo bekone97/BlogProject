@@ -71,4 +71,10 @@ public class UserServiceImpl implements UserService {
         UserDtoResponse user = getById(userId);
         userRepository.deleteById(userId);
     }
+
+    @Override
+    public boolean existsById(Long id) {
+        log.info("Check existing user by user id : {}",id);
+        return userRepository.existsById(id);
+    }
 }

@@ -17,7 +17,7 @@ import static org.springframework.http.HttpStatus.OK;
 @RequiredArgsConstructor
 @Slf4j
 public class PostController {
-    
+
     private final PostService postService;
 
     @GetMapping
@@ -54,5 +54,12 @@ public class PostController {
     public void deleteById(@PathVariable Long postId){
         log.info("Delete post by id: {}",postId);
         postService.deleteById(postId);
+    }
+
+    @GetMapping("/byUser/{userId}")
+    @ResponseStatus(OK)
+    public List<PostDtoResponse> findAllResponseByUserId(@PathVariable Long userId){
+        log.info("Find all posts by user id : {}",userId);
+        return postService.findAllByUserId(userId);
     }
 }

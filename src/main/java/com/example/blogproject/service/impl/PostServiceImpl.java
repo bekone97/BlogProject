@@ -6,6 +6,7 @@ import com.example.blogproject.dto.UserDtoResponse;
 import com.example.blogproject.exception.ResourceNotFoundException;
 import com.example.blogproject.mapper.PostMapper;
 import com.example.blogproject.model.Post;
+import com.example.blogproject.model.User;
 import com.example.blogproject.repository.PostRepository;
 import com.example.blogproject.service.PostService;
 import com.example.blogproject.service.UserService;
@@ -78,5 +79,16 @@ public class PostServiceImpl implements PostService {
         log.info("Check existing post by id : {} and delete it",postId);
         PostDtoResponse byId = getById(postId);
         postRepository.deleteById(postId);
+    }
+
+    @Override
+    public List<PostDtoResponse> findAllByUserId(Long userId) {
+        log.info("Find all posts by user id : {}",userId);
+        if (userService.existsById(userId)){
+            return postRepository.findAllByUserId(userId).stream()
+                    .map(postMapper::mapToPostDtoResponse)
+                    .collect(Collectors.toList());
+        }
+        throw new ResourceNotFoundException(User.class,"id",userId);
     }
 }
