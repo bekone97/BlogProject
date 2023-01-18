@@ -12,11 +12,10 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class PostDtoRequest {
+public class PostDtoResponse {
     private Long id;
     private String content;
-
-    private Long userId;
+    private UserDtoResponse userDtoResponse;
     private String img;
     private String audio;
     private String video;

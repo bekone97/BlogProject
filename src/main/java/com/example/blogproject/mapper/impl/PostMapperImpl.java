@@ -1,6 +1,7 @@
 package com.example.blogproject.mapper.impl;
 
 import com.example.blogproject.dto.PostDtoRequest;
+import com.example.blogproject.dto.PostDtoResponse;
 import com.example.blogproject.dto.UserDtoResponse;
 import com.example.blogproject.mapper.PostMapper;
 import com.example.blogproject.mapper.UserMapper;
@@ -15,9 +16,17 @@ public class PostMapperImpl implements PostMapper {
     private final ModelMapper modelMapper;
     private final UserMapper userMapper;
     @Override
-    public Post mapToPost(PostDtoRequest postDtoRequest, UserDtoResponse userDtoResponse) {
+    public Post mapToPost(Long postId, PostDtoRequest postDtoRequest, UserDtoResponse userDtoResponse) {
         Post post = modelMapper.map(postDtoRequest,Post.class);
         post.setUser(userMapper.mapToUser(userDtoResponse));
+        post.setId(postId);
         return post;
+    }
+
+    @Override
+    public PostDtoResponse mapToPostDtoResponse(Post post) {
+        PostDtoResponse postDtoResponse = modelMapper.map(post, PostDtoResponse.class);
+        postDtoResponse.setUserDtoResponse(userMapper.mapToUserDtoResponse(post.getUser()));
+        return postDtoResponse;
     }
 }

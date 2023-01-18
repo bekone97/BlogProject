@@ -1,5 +1,6 @@
 package com.example.blogproject.service.impl;
 
+import com.example.blogproject.dto.PostDtoResponse;
 import com.example.blogproject.mapper.CommentMapper;
 import com.example.blogproject.model.Comment;
 import com.example.blogproject.model.Post;
@@ -35,10 +36,10 @@ public class CommentServiceImpl implements CommentService {
     @Override
     @Transactional
     public Comment save(Comment comment, Long postId) {
-        Post post = postService.getById(postId);
+        PostDtoResponse post = postService.getById(postId);
         Comment comment1 = commentRepository.save(comment);
         post.getComments().add(comment);
-        postService.save(commentMapper.mapToPhoneDtoRequest(post));
+//        postService.save(commentMapper.mapToPhoneDtoRequest(post));
         return comment1;
     }
 
