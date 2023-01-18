@@ -11,7 +11,7 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface UserAgeConstraint {
 
-    String message() default "user.validation.dateOfBirth.ageConstraint";
+    String message() default "{user.validation.dateOfBirth.ageConstraint}";
 
     Class<?>[] groups() default {};
 
