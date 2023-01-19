@@ -15,6 +15,7 @@ import org.springframework.data.mongodb.core.query.UpdateDefinition;
 import org.springframework.data.mongodb.core.schema.JsonSchemaProperty;
 import org.springframework.data.mongodb.core.schema.MongoJsonSchema;
 import org.springframework.data.mongodb.core.validation.Validator;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.util.List;
 
@@ -26,6 +27,7 @@ public class InitUserCollection {
 
     private final MongoTemplate mongoTemplate;
     private final List<User> adminList;
+    private final BCryptPasswordEncoder bCryptPasswordEncoder;
     @BeforeExecution
     public void beforeExecution(){
         mongoTemplate.createCollection("user", CollectionOptions.empty()
@@ -36,15 +38,18 @@ public class InitUserCollection {
                                         JsonSchemaProperty.string("username"),
                                         JsonSchemaProperty.string("password"),
                                         JsonSchemaProperty.string("email"),
-                                        JsonSchemaProperty.date("date_of_birth")
+                                        JsonSchemaProperty.date("date_of_birth"),
+                                        JsonSchemaProperty.string("role")
                                 )
                         .build())))
                 .createIndex(new Document("email",1), new IndexOptions().name("email").unique(true));
 }
     @Execution
     public void changeSet(){
-        adminList.forEach(user ->
-            mongoTemplate.save(user, "user"));
+        adminList.forEach(user -> {
+            user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
+            mongoTemplate.save(user, "user");
+        });
     }
     @RollbackBeforeExecution
     public void rollbackBefore(){

@@ -22,13 +22,9 @@ public class PostDtoResponse {
     @Schema(description = "User who has written this post",implementation = UserDtoResponse.class)
     private UserDtoResponse userDtoResponse;
 
-    @Schema(description = "img in post")
-    private String img;
+    @Schema(description = "Some file in post")
+    private LoadFile file;
 
-    @Schema(description = "Audio in post")
-    private String audio;
-    @Schema(description = "Video in post")
-    private String video;
 
     @Schema(description = "List of comments which are in this post",implementation = CommentDtoResponse.class)
     private List<CommentDtoResponse> comments;

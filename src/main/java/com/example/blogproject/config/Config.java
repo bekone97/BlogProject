@@ -1,5 +1,6 @@
 package com.example.blogproject.config;
 
+import com.example.blogproject.model.Role;
 import com.example.blogproject.model.User;
 import io.mongock.runner.springboot.EnableMongock;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +33,7 @@ public class Config {
                         .username("admin")
                         .password("password")
                         .email("myachinenergo@mail.ru")
+                        .role(Role.ROLE_ADMIN)
                         .dateOfBirth(LocalDate.now().minusYears(16))
                         .build(),
                 User.builder()
@@ -39,6 +41,7 @@ public class Config {
                         .username("secondUser")
                         .password("secondPassword")
                         .email("bekone97@mail.ru")
+                        .role(Role.ROLE_ADMIN)
                         .dateOfBirth(LocalDate.now().minusYears(15))
                         .build());
     }

@@ -25,10 +25,6 @@ public class UserDtoRequest {
     @NotBlank
     private String username;
 
-    @Schema(description = "User's password",example = "1231oskmlkmadlk",minLength = 6,implementation = String.class)
-    @Size(min = 6, message = "{user.validation.password.min}")
-    private String password;
-
     @Schema(description = "User's email", example = "amdsldmal@mail.ru",implementation = String.class)
     @Email(message = "{user.validation.email}")
     private String email;

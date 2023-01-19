@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.ReadOnlyProperty;
 import org.springframework.data.annotation.Transient;
@@ -31,11 +32,7 @@ public class Post {
     @DBRef
     private User user;
 
-    private String img;
-
-    private String audio;
-
-    private String video;
+    private ObjectId file;
 
     @DBRef(lazy = true)
     private List<Comment> comments;

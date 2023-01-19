@@ -6,11 +6,18 @@ spring:
       host: ${DB_HOST:localhost}
       username: ${DB_USER:SomeUser}
       password: ${DB_PASSWORD:SomePassword}
-  jpa:
-    properties:
-      hibernate:
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 256MB
+      max-request-size: 256MB
 
 mongock:
   migration-scan-package: com.example.blogproject.changeunit
+
 server:
   port: 8080
+
+jwt:
+  secret: secret
+

@@ -1,5 +1,6 @@
 package com.example.blogproject.mapper.impl;
 
+import com.example.blogproject.dto.UserDto;
 import com.example.blogproject.dto.UserDtoRequest;
 import com.example.blogproject.dto.UserDtoResponse;
 import com.example.blogproject.mapper.UserMapper;
@@ -29,5 +30,15 @@ public class UserMapperImpl implements UserMapper {
     @Override
     public User mapToUser(UserDtoResponse userDtoResponse) {
         return modelMapper.map(userDtoResponse,User.class);
+    }
+
+    @Override
+    public User mapToUser(UserDto userDto) {
+        return modelMapper.map(userDto,User.class);
+    }
+
+    @Override
+    public UserDto mapToUserDto(User user) {
+        return modelMapper.map(user,UserDto.class);
     }
 }

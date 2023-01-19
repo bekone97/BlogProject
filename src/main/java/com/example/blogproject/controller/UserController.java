@@ -13,13 +13,12 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -84,9 +83,11 @@ public class UserController {
     @ResponseStatus(CREATED)
     public UserDtoResponse save(@Parameter(description = "User information for a new user to be created", required = true,
             schema = @Schema(implementation = UserDtoRequest.class))
-                                @Valid @RequestBody UserDtoRequest userDtoRequest) {
+                                @Valid @RequestBody UserDtoRequest userDtoRequest,
+                                @RequestParam @Size(min = 6, message = "User password can't be less than 6 symbols")
+                                @NotBlank(message = "User's password can't be empty") String password) {
         log.info("Save user by : {}", userDtoRequest);
-        return userService.save(userDtoRequest);
+        return userService.save(userDtoRequest,password );
     }
 
     @Operation(summary = "Update an existing user")

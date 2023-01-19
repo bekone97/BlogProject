@@ -9,6 +9,7 @@ import com.example.blogproject.model.Comment;
 import com.example.blogproject.model.Post;
 import com.example.blogproject.model.User;
 import com.example.blogproject.repository.PostRepository;
+import com.example.blogproject.service.FileService;
 import com.example.blogproject.service.PostService;
 import com.example.blogproject.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -33,17 +34,20 @@ public class PostServiceImpl implements PostService {
     private final PostMapper postMapper;
     private final UserService userService;
     private final SequenceGeneratorService sequenceGeneratorService;
+    private final FileService fileService;
 
     @Override
     public PostDtoResponse getById(Long id) {
         log.info("Get post by id : {}",id);
         return postRepository.findById(id)
-                .map(postMapper::mapToPostDtoResponse)
+                .map(this::getPostDtoResponse)
                 .orElseThrow(()-> {
                     log.error("Post wasn't found by id : {}",id);
                     return new ResourceNotFoundException(Post.class,"id",id);
                 });
     }
+
+
 
     @Override
     public Page<PostDtoResponse> findAll(Pageable pageable) {
@@ -51,7 +55,7 @@ public class PostServiceImpl implements PostService {
         return postRepository.findAll(pageable != null ?
                         pageable :
                         PageRequest.of(1, 3, Sort.by("id")))
-                .map((postMapper::mapToPostDtoResponse));
+                .map((this::getPostDtoResponse));
     }
 
     @Override
@@ -59,9 +63,25 @@ public class PostServiceImpl implements PostService {
     public PostDtoResponse save(PostDtoRequest postDtoRequest) {
         log.info("Save post from postDroRequest:{}",postDtoRequest);
         UserDtoResponse userDtoResponse = userService.getById(postDtoRequest.getUserId());
+        Post post = getPostFromRequest(postDtoRequest, userDtoResponse);
+        post=postRepository.save(post);
+        return getPostDtoResponse(post);
+    }
+
+    private Post getPostFromRequest(PostDtoRequest postDtoRequest, UserDtoResponse userDtoResponse) {
         Post post = postMapper.mapToPost(sequenceGeneratorService.generateSequence(Post.SEQUENCE_NAME),
-                postDtoRequest,userDtoResponse);
-        return postMapper.mapToPostDtoResponse(postRepository.save(post));
+                postDtoRequest, userDtoResponse);
+        if (postDtoRequest.getFile()!=null)
+            post.setFile(fileService.uploadFile(postDtoRequest.getFile()));
+        return post;
+    }
+    private Post getPostFromRequest(Long postId,PostDtoRequest postDtoRequest, UserDtoResponse userDtoResponse,
+                                    List<Comment> comments) {
+        Post post = postMapper.mapToPost(postId,
+                postDtoRequest, userDtoResponse,comments);
+        if (postDtoRequest.getFile()!=null)
+            post.setFile(fileService.uploadFile(postDtoRequest.getFile()));
+        return post;
     }
 
     @Override
@@ -70,9 +90,9 @@ public class PostServiceImpl implements PostService {
         log.info("Check existing post by id : {} and update it by : {}",postId,postDtoRequest);
         UserDtoResponse userDtoResponse = userService.getById(postDtoRequest.getUserId());
         return postRepository.findById(postId)
-                .map(post -> postMapper.mapToPost(postId,postDtoRequest,userDtoResponse,post.getComments()))
+                .map(post ->getPostFromRequest(postId,postDtoRequest,userDtoResponse,post.getComments()))
                 .map(postRepository::save)
-                .map(postMapper::mapToPostDtoResponse)
+                .map(this::getPostDtoResponse)
                 .orElseThrow(()->{
                     log.error("Post wasn't find by id : {}", postId);
                     return new ResourceNotFoundException(Post.class,"id",postId);
@@ -92,7 +112,7 @@ public class PostServiceImpl implements PostService {
         log.info("Find all posts by user id : {}",userId);
         if (userService.existsById(userId)){
             return postRepository.findAllByUserId(userId).stream()
-                    .map(postMapper::mapToPostDtoResponse)
+                    .map(this::getPostDtoResponse)
                     .collect(Collectors.toList());
         }
         throw new ResourceNotFoundException(User.class,"id",userId);
@@ -122,6 +142,13 @@ public class PostServiceImpl implements PostService {
     @Override
     public boolean existsByPostIdAndComment(Long postId, Comment comment) {
         return postRepository.existsByIdAndCommentsContaining(postId,comment);
+    }
+
+    private PostDtoResponse getPostDtoResponse(Post post) {
+        PostDtoResponse postDtoResponse = postMapper.mapToPostDtoResponse(post);
+        if (post.getFile()!=null)
+            postDtoResponse.setFile(fileService.downloadFile(post.getFile()));
+        return postDtoResponse;
     }
 
 }

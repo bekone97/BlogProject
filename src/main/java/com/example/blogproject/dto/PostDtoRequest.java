@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.web.multipart.MultipartFile;
 
 @Data
 @AllArgsConstructor
@@ -19,12 +20,6 @@ public class PostDtoRequest {
     @Schema(description = "Some text are written in this post",implementation = String.class)
     private String content;
 
-    @Schema(description = "img in post")
-    private String img;
-
-    @Schema(description = "Audio in post")
-    private String audio;
-
-    @Schema(description = "Video in post")
-    private String video;
+    @Schema(description = "Some file(for example video,audio, photo) in post")
+    private MultipartFile file;
 }

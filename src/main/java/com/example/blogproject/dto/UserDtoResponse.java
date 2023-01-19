@@ -20,9 +20,6 @@ public class UserDtoResponse {
     @Schema(description = "User's username",example = "Arteminio",implementation = String.class)
     private String username;
 
-    @Schema(description = "User's password",example = "1231oskmlkmadlk",implementation = String.class)
-    private String password;
-
     @Schema(description = "User's email", example = "amdsldmal@mail.ru",implementation = String.class)
     private String email;
 
