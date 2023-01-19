@@ -13,10 +13,13 @@ import com.example.blogproject.service.PostService;
 import com.example.blogproject.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -43,11 +46,12 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public List<PostDtoResponse> findAll(){
+    public Page<PostDtoResponse> findAll(Pageable pageable) {
         log.info("Find all posts");
-        return postRepository.findAll().stream()
-                .map(postMapper::mapToPostDtoResponse)
-                .collect(Collectors.toList());
+        return postRepository.findAll(pageable != null ?
+                        pageable :
+                        PageRequest.of(1, 3, Sort.by("id")))
+                .map((postMapper::mapToPostDtoResponse));
     }
 
     @Override

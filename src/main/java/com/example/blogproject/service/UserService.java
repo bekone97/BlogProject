@@ -2,15 +2,14 @@ package com.example.blogproject.service;
 
 import com.example.blogproject.dto.UserDtoRequest;
 import com.example.blogproject.dto.UserDtoResponse;
-import com.example.blogproject.model.User;
-
-import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface UserService {
 
     UserDtoResponse getById(Long id);
 
-    List<UserDtoResponse> findAll();
+    Page<UserDtoResponse> findAll(Pageable pageable);
 
     UserDtoResponse save(UserDtoRequest userDtoRequest);
 

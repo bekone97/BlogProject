@@ -16,7 +16,7 @@ public class CommentDtoRequest {
 
     @Schema(description = "Text of comment",implementation = String.class)
     @Size(min = 1, message = "{comment.validation.text.min}")
-    @Size(min = 300, message = "{comment.validation.text.max}")
+    @Size(max = 300, message = "{comment.validation.text.max}")
     private String text;
 
     @Schema(description = "Id of user who has written this comment",example = "1",implementation = Long.class)

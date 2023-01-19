@@ -15,10 +15,13 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 import static com.example.blogproject.utils.ConstantUtil.SwaggerResponse.*;
 import static org.springframework.http.HttpStatus.CREATED;
@@ -43,9 +46,9 @@ public class UserController {
     })
     @GetMapping
     @ResponseStatus(OK)
-    public List<UserDtoResponse> getAllUsers() {
+    public Page<UserDtoResponse> getAllUsers(Pageable pageable) {
         log.info("Get all users");
-        return userService.findAll();
+        return userService.findAll(pageable);
     }
 
     @Operation(summary = "Returns a user by userId")

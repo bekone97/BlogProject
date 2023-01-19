@@ -6,6 +6,10 @@ spring:
       host: ${DB_HOST:localhost}
       username: ${DB_USER:SomeUser}
       password: ${DB_PASSWORD:SomePassword}
+  jpa:
+    properties:
+      hibernate:
+
 mongock:
   migration-scan-package: com.example.blogproject.changeunit
 server:

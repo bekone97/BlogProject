@@ -8,6 +8,7 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
+import org.springframework.data.web.config.EnableSpringDataWebSupport;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
 import java.time.LocalDate;
@@ -16,7 +17,7 @@ import java.util.List;
 @Configuration
 @RequiredArgsConstructor
 @EnableMongock
-
+@EnableSpringDataWebSupport
 public class Config {
 
     @Bean

@@ -9,11 +9,12 @@ import com.example.blogproject.repository.UserRepository;
 import com.example.blogproject.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -35,11 +36,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<UserDtoResponse> findAll() {
+    public Page<UserDtoResponse> findAll(Pageable pageable) {
         log.info("Find all users");
-        return userRepository.findAll()
-                .stream().map(userMapper::mapToUserDtoResponse)
-                .collect(Collectors.toList());
+        return userRepository.findAll(pageable != null ?
+                        pageable :
+                        PageRequest.of(1, 3, Sort.by("id"))
+                )
+                .map((userMapper::mapToUserDtoResponse));
     }
 
     @Override

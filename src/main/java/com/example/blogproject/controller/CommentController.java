@@ -17,6 +17,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -69,11 +71,11 @@ public class CommentController {
     })
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public List<CommentDtoResponse> getCommentsByPostId(@Parameter(description = "Id of post for comments to be searched",
+    public Page<CommentDtoResponse> getCommentsByPostId(@Parameter(description = "Id of post for comments to be searched",
                                                         required = true, example = "1")
-                                                            @PathVariable @ValidId Long postId){
+                                                            @PathVariable @ValidId Long postId, Pageable pageable){
         log.info("Get all comments of post with id : {}",postId);
-        return commentService.findAllCommentsByPost(postId);
+        return commentService.findAllCommentsByPost(postId,pageable);
     }
 
 

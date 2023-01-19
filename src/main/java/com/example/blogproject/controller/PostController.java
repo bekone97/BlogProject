@@ -15,6 +15,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -44,9 +46,9 @@ public class PostController {
     })
     @GetMapping
     @ResponseStatus(OK)
-    public List<PostDtoResponse> findAllPosts(){
+    public Page<PostDtoResponse> findAllPosts(Pageable pageable){
         log.info("Find all posts");
-        return postService.findAll();
+        return postService.findAll(pageable);
     }
 
 

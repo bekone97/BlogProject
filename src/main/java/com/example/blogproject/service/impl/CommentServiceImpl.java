@@ -2,6 +2,7 @@ package com.example.blogproject.service.impl;
 
 import com.example.blogproject.dto.CommentDtoRequest;
 import com.example.blogproject.dto.CommentDtoResponse;
+import com.example.blogproject.dto.PostDtoResponse;
 import com.example.blogproject.dto.UserDtoResponse;
 import com.example.blogproject.exception.ResourceNotFoundException;
 import com.example.blogproject.mapper.CommentMapper;
@@ -13,10 +14,13 @@ import com.example.blogproject.service.PostService;
 import com.example.blogproject.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -31,9 +35,14 @@ public class CommentServiceImpl implements CommentService {
 
 
     @Override
-    public List<CommentDtoResponse> findAllCommentsByPost(Long postId) {
+    public Page<CommentDtoResponse> findAllCommentsByPost(Long postId, Pageable pageable) {
         log.info("Get all comments of post : {}",postId);
-        return postService.getById(postId).getComments();
+        PostDtoResponse postDtoResponse=postService.getById(postId);
+        List<Long> commentIds = postDtoResponse.getComments().stream()
+                .map(CommentDtoResponse::getId)
+                .collect(Collectors.toList());
+        return commentRepository.findAllByIdIn(commentIds,pageable)
+                .map(commentMapper::mapToCommentDtoResponse);
     }
 
     @Override
