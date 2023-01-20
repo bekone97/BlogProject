@@ -20,6 +20,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.List;
 
 import static com.example.blogproject.utils.ConstantUtil.SwaggerResponse.*;
@@ -87,9 +88,9 @@ public class PostController {
     @ResponseStatus(CREATED)
     public PostDtoResponse save(@Parameter(description = "Post information for a new post to be created", required = true,
             schema = @Schema(implementation = PostDtoRequest.class))
-                                @Valid @RequestBody PostDtoRequest postDtoRequest){
+                                @Valid @RequestBody PostDtoRequest postDtoRequest, Principal principal){
         log.info("Save new post by : {}",postDtoRequest);
-        return postService.save(postDtoRequest);
+        return postService.save(postDtoRequest,principal);
     }
 
     @Operation(summary = "Update an existing post")
@@ -110,9 +111,9 @@ public class PostController {
                                     @PathVariable @ValidId Long postId,
                                   @Parameter(description = "Post information for a post to be updated", required = true,
                                           schema = @Schema(implementation = PostDtoRequest.class))
-                                  @Valid @RequestBody PostDtoRequest postDtoRequest){
+                                  @Valid @RequestBody PostDtoRequest postDtoRequest, Principal principal){
         log.info("Update post by id : {} and by : {}",postId,postDtoRequest);
-        return postService.update(postId,postDtoRequest);
+        return postService.update(postId,postDtoRequest,principal);
     }
 
     @Operation(summary = "Delete an existing post")
@@ -128,9 +129,9 @@ public class PostController {
     @DeleteMapping("/{postId}")
     @ResponseStatus(OK)
     public void deleteById(@Parameter(description = "Id of post to be deleted", required = true, example = "1")
-                            @PathVariable @ValidId Long postId){
+                            @PathVariable @ValidId Long postId,Principal principal){
         log.info("Delete post by id: {}",postId);
-        postService.deleteById(postId);
+        postService.deleteById(postId,principal);
     }
 
     @Operation(summary = "Returns posts of user by userId")

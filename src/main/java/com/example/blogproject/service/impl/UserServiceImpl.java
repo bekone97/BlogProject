@@ -9,7 +9,6 @@ import com.example.blogproject.model.Role;
 import com.example.blogproject.model.User;
 import com.example.blogproject.repository.UserRepository;
 import com.example.blogproject.security.user.AuthenticatedUser;
-import com.example.blogproject.service.FileService;
 import com.example.blogproject.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,9 +16,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -39,6 +36,8 @@ public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
     private final SequenceGeneratorService sequenceGeneratorService;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
+
+
     @Override
     public UserDtoResponse getById(Long id) {
         return userRepository.findById(id)
@@ -81,8 +80,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public UserDtoResponse update(Long userId, UserDtoRequest userDtoRequest) {
+    public UserDtoResponse update(Long userId, UserDtoRequest userDtoRequest, Principal principal) {
         log.info("Check existing user by userId : {} and update it by :{}",userId,userDtoRequest);
+        checkValidCredentials(userId, principal);
         return userRepository.findById(userId)
                 .map(user->{
                     User editedUser = userMapper.mapToUser(userId, userDtoRequest);
@@ -100,7 +100,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public void deleteById(Long userId) {
+    public void deleteById(Long userId, Principal principal) {
+        checkValidCredentials(userId,principal);
         log.info("Check existing user by userId : {} and delete id",userId);
         UserDtoResponse user = getById(userId);
         userRepository.deleteById(userId);
@@ -123,22 +124,26 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserDtoResponse changePasswordByUserId(Long id, String password) {
-        AuthenticatedUser currentUser = (AuthenticatedUser)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if (userRepository.existsByIdAndUsername(id,currentUser.getUsername())||
-                currentUser.getAuthorities().stream().anyMatch(authority->authority.getAuthority().equals("ROLE_ADMIN"))){
-            userRepository.findById(id)
-                    .map(user ->{
-                        user.setPassword(password);
-                        User save = userRepository.save(user);
-                        return userMapper.mapToUserDtoResponse(save);
-                    } )
-                    .orElseThrow(()->{
-                        log.error("There isn't user with id : {}",id);
-                        throw new ResourceNotFoundException(User.class,"id",id);
-                    });
+    public UserDtoResponse changePasswordByUserId(Long id, String password,Principal principal) {
+        checkValidCredentials(id, principal);
+        return userRepository.findById(id)
+                .map(user ->{
+                    user.setPassword(password);
+                    User save = userRepository.save(user);
+                    return userMapper.mapToUserDtoResponse(save);
+                } )
+                .orElseThrow(()->{
+                    log.error("There isn't user with id : {}",id);
+                    throw new ResourceNotFoundException(User.class,"id",id);
+                });
+    }
+
+    private void checkValidCredentials(Long id, Principal principal) {
+        AuthenticatedUser currentUser = (AuthenticatedUser)principal;
+        if (!userRepository.existsByIdAndUsername(id,currentUser.getUsername())||
+                currentUser.getAuthorities().stream().noneMatch(authority->authority.getAuthority().equals("ROLE_ADMIN"))){
+            throw new RuntimeException();
         }
-        throw new RuntimeException();
     }
 
 

@@ -9,18 +9,22 @@ import com.example.blogproject.model.Comment;
 import com.example.blogproject.model.Post;
 import com.example.blogproject.model.User;
 import com.example.blogproject.repository.PostRepository;
+import com.example.blogproject.security.user.AuthenticatedUser;
 import com.example.blogproject.service.FileService;
 import com.example.blogproject.service.PostService;
 import com.example.blogproject.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.SpringApplication;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.security.Principal;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -60,8 +64,9 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional
-    public PostDtoResponse save(PostDtoRequest postDtoRequest) {
+    public PostDtoResponse save(PostDtoRequest postDtoRequest, Principal principal) {
         log.info("Save post from postDroRequest:{}",postDtoRequest);
+
         UserDtoResponse userDtoResponse = userService.getById(postDtoRequest.getUserId());
         Post post = getPostFromRequest(postDtoRequest, userDtoResponse);
         post=postRepository.save(post);
@@ -86,9 +91,11 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional
-    public PostDtoResponse update(Long postId, PostDtoRequest postDtoRequest) {
+    public PostDtoResponse update(Long postId, PostDtoRequest postDtoRequest, Principal principal) {
         log.info("Check existing post by id : {} and update it by : {}",postId,postDtoRequest);
+
         UserDtoResponse userDtoResponse = userService.getById(postDtoRequest.getUserId());
+        checkValidCredentials(userDtoResponse,principal);
         return postRepository.findById(postId)
                 .map(post ->getPostFromRequest(postId,postDtoRequest,userDtoResponse,post.getComments()))
                 .map(postRepository::save)
@@ -101,9 +108,10 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional
-    public void deleteById(Long postId) {
+    public void deleteById(Long postId, Principal principal) {
         log.info("Check existing post by id : {} and delete it",postId);
         PostDtoResponse byId = getById(postId);
+        checkValidCredentials(byId.getUserDtoResponse(), principal);
         postRepository.deleteById(postId);
     }
 
@@ -127,7 +135,7 @@ public class PostServiceImpl implements PostService {
     @Override
     @Transactional
     public void addCommentToPost(Long postId, Comment newComment) {
-        Post savedPost = postRepository.findById(postId)
+       postRepository.findById(postId)
                 .map(post -> {
                     if (post.getComments()==null){
                         post.setComments(List.of(newComment));
@@ -149,6 +157,14 @@ public class PostServiceImpl implements PostService {
         if (post.getFile()!=null)
             postDtoResponse.setFile(fileService.downloadFile(post.getFile()));
         return postDtoResponse;
+    }
+
+    private void checkValidCredentials(UserDtoResponse userDtoResponse, Principal principal) {
+        AuthenticatedUser currentUser = (AuthenticatedUser) principal;
+        if (!userDtoResponse.getUsername().equals(currentUser.getUsername())||
+                currentUser.getAuthorities().stream().noneMatch(authority->authority.getAuthority().equals("ROLE_ADMIN"))){
+            throw new RuntimeException();
+        }
     }
 
 }

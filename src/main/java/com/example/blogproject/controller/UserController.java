@@ -22,6 +22,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
+
 import static com.example.blogproject.utils.ConstantUtil.SwaggerResponse.*;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
@@ -110,7 +112,7 @@ public class UserController {
                                           schema = @Schema(implementation = UserDtoRequest.class))
                                   @Valid @RequestBody UserDtoRequest userDtoRequest) {
         log.info("Update user with id : {} by : {}", userId, userDtoRequest);
-        return userService.update(userId, userDtoRequest);
+        return userService.update(userId, userDtoRequest, );
     }
 
 
@@ -127,8 +129,8 @@ public class UserController {
     @DeleteMapping("/{userId}")
     @ResponseStatus(OK)
     public void deleteById(@Parameter(description = "Id of user to be deleted", required = true, example = "1")
-                           @PathVariable @ValidId Long userId) {
+                           @PathVariable @ValidId Long userId, Principal principal) {
         log.info("Delete user by id");
-        userService.deleteById(userId);
+        userService.deleteById(userId,principal);
     }
 }

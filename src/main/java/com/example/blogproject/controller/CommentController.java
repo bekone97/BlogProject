@@ -22,6 +22,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.List;
 
 import static com.example.blogproject.utils.ConstantUtil.SwaggerResponse.*;
@@ -100,9 +101,9 @@ public class CommentController {
                                           @Parameter(description = "Comment information for a new comment to be created",
                                                   required = true,
                                                   schema = @Schema(implementation = CommentDtoRequest.class))
-                                          @Valid @RequestBody CommentDtoRequest commentDtoRequest) {
+                                          @Valid @RequestBody CommentDtoRequest commentDtoRequest, Principal principal) {
         log.info("Save new comment to post with id : {} by : {}", postId, commentDtoRequest);
-        return commentService.save(commentDtoRequest, postId);
+        return commentService.save(commentDtoRequest, postId,principal);
     }
 
     @Operation(summary = "Update an existing comment of certain post")
@@ -128,9 +129,9 @@ public class CommentController {
                                             @Parameter(description = "Comment information for a new comment to be created",
                                                     required = true,
                                                     schema = @Schema(implementation = CommentDtoRequest.class))
-                                            @Valid @RequestBody CommentDtoRequest commentDtoRequest){
+                                            @Valid @RequestBody CommentDtoRequest commentDtoRequest,Principal principal){
         log.info("Update comment from post with id :{} and with commentId : {} by : {}",postId,commentId,commentDtoRequest);
-        return commentService.update(commentId,postId,commentDtoRequest);
+        return commentService.update(commentId,postId,commentDtoRequest,principal);
     }
 
 
@@ -151,8 +152,8 @@ public class CommentController {
                               @PathVariable @ValidId Long postId,
                               @Parameter(description = "Id of comment to be deleted",
                                       required = true, example = "1")
-                              @PathVariable @ValidId Long commentId){
+                              @PathVariable @ValidId Long commentId, Principal principal){
         log.info("Delete comment with postId : {} and commentId: {}",postId,commentId);
-        commentService.delete(commentId,postId);
+        commentService.delete(commentId,postId,principal);
     }
 }

@@ -9,6 +9,7 @@ import com.example.blogproject.mapper.CommentMapper;
 import com.example.blogproject.model.Comment;
 import com.example.blogproject.model.Post;
 import com.example.blogproject.repository.CommentRepository;
+import com.example.blogproject.security.user.AuthenticatedUser;
 import com.example.blogproject.service.CommentService;
 import com.example.blogproject.service.PostService;
 import com.example.blogproject.service.UserService;
@@ -16,9 +17,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.security.Principal;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -56,7 +59,7 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     @Transactional
-    public CommentDtoResponse save(CommentDtoRequest commentDtoRequest, Long postId) {
+    public CommentDtoResponse save(CommentDtoRequest commentDtoRequest, Long postId, Principal principal) {
         log.info("Save new comment by : {} to post with id : {}",commentDtoRequest,postId);
         if (postService.existsById(postId)) {
             UserDtoResponse userComment = userService.getById(commentDtoRequest.getUserId());
@@ -71,33 +74,48 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     @Transactional
-    public CommentDtoResponse update(Long commentId, Long postId, CommentDtoRequest commentDtoRequest) {
+    public CommentDtoResponse update(Long commentId, Long postId, CommentDtoRequest commentDtoRequest, Principal principal) {
         log.info("Update comment with id : {} by : {} from post with id : {}",commentId,commentDtoRequest,postId);
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(()->{
                     log.error("Comment with id : {} wasn't found",commentId);
                     return  new ResourceNotFoundException(Comment.class,"id",commentId);
                 });
-        if (postService.existsByPostIdAndComment(postId,comment)){
-            comment = commentMapper.mapToComment(comment.getId(),comment.getUser(),commentDtoRequest);
-            return commentMapper.mapToCommentDtoResponse(commentRepository.save(comment));
+        checkValidCredentials(postId,commentId, principal);
+        if (!postService.existsByPostIdAndComment(postId,comment)){
+            throw new ResourceNotFoundException(Comment.class,"id",commentId,Post.class,"id",postId);
         }
-        throw new ResourceNotFoundException(Comment.class,"id",commentId,Post.class,"id",postId);
+        comment = commentMapper.mapToComment(comment.getId(),comment.getUser(),commentDtoRequest);
+        return commentMapper.mapToCommentDtoResponse(commentRepository.save(comment));
     }
 
     @Override
-    public void delete(Long commentId, Long postId) {
+    public void delete(Long commentId, Long postId, Principal principal) {
         log.info("Delete comment by id : {}  from post with id : {}", commentId,postId);
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(()->{
                     log.error("Comment with id : {} wasn't found",commentId);
                     return  new ResourceNotFoundException(Comment.class,"id",commentId);
                 });
-        if (postService.existsByPostIdAndComment(postId,comment)){
-            commentRepository.delete(comment);
-            return;
-        }
+        checkValidCredentials(postId,commentId,principal);
+        if (!postService.existsByPostIdAndComment(postId,comment)){
             throw new ResourceNotFoundException(Comment.class, "id", commentId, Post.class, "id", postId);
+        }
+        commentRepository.delete(comment);
+        
+    }
 
+
+    private void checkValidCredentials(Long postId, Long commentId, Principal principal) {
+        AuthenticatedUser currentUser = (AuthenticatedUser) principal;
+        PostDtoResponse postDtoResponse = postService.getById(postId);
+        boolean isValid = postDtoResponse.getComments().stream()
+                .filter(comment->comment.getId().equals(commentId))
+                .findFirst()
+                .map(comment-> comment.getUserDtoResponse().getUsername().equals(currentUser.getUsername()) ||
+                        currentUser.getAuthorities().stream().anyMatch(authority->authority.getAuthority().equals("ROLE_ADMIN")))
+                .orElseThrow(RuntimeException::new);
+        if (!isValid)
+            throw new RuntimeException();
     }
 }
