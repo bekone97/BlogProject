@@ -14,10 +14,12 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.gridfs.GridFsOperations;
 import org.springframework.data.mongodb.gridfs.GridFsTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class FileServiceImpl implements FileService {
 
     private final GridFsTemplate gridFsTemplate;
@@ -25,6 +27,7 @@ public class FileServiceImpl implements FileService {
 
     @SneakyThrows
     @Override
+    @Transactional
     public ObjectId uploadFile(MultipartFile file) {
         DBObject data = new BasicDBObject();
         data.put("filesize",file.getSize());
@@ -45,5 +48,11 @@ public class FileServiceImpl implements FileService {
                 .fileType(gridFSFile.getMetadata().get("_contentType").toString())
                 .file(IOUtils.toByteArray(gridFsOperations.getResource(gridFSFile).getInputStream()))
                 .build();
+    }
+
+    @Override
+    @Transactional
+    public void deleteFile(ObjectId file) {
+        gridFsTemplate.delete(new Query(Criteria.where("_id").is(file)));
     }
 }

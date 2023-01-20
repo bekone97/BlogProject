@@ -19,7 +19,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,7 +35,7 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final SequenceGeneratorService sequenceGeneratorService;
-    private final BCryptPasswordEncoder bCryptPasswordEncoder;
+    private final PasswordEncoder passwordEncoder;
 
 
     @Override
@@ -73,7 +73,7 @@ public class UserServiceImpl implements UserService {
     public UserDtoResponse save(UserDtoRequest userDtoRequest, String password) {
         log.info("Save user by :{}",userDtoRequest);
         User user = userMapper.mapToUser(sequenceGeneratorService.generateSequence(User.SEQUENCE_NAME),userDtoRequest);
-        user.setPassword(bCryptPasswordEncoder.encode(password));
+        user.setPassword(passwordEncoder.encode(password));
         user.setRole(Role.ROLE_USER);
         return userMapper.mapToUserDtoResponse(userRepository.save(user));
     }
@@ -128,7 +128,7 @@ public class UserServiceImpl implements UserService {
         checkValidCredentials(id, principal);
         return userRepository.findById(id)
                 .map(user ->{
-                    user.setPassword(password);
+                    user.setPassword(passwordEncoder.encode(password));
                     User save = userRepository.save(user);
                     return userMapper.mapToUserDtoResponse(save);
                 } )

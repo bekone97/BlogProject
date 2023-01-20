@@ -22,9 +22,7 @@ public class InitPostCollection {
                                         JsonSchemaProperty.int64("id"),
                                         JsonSchemaProperty.string("content"),
                                         JsonSchemaProperty.object("user"),
-                                        JsonSchemaProperty.string("img"),
-                                        JsonSchemaProperty.string("audio"),
-                                        JsonSchemaProperty.string("video"),
+                                        JsonSchemaProperty.objectId("file"),
                                         JsonSchemaProperty.array("comments")
                                 )
                                 .build())));

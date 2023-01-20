@@ -1,5 +1,6 @@
 package com.example.blogproject.service.impl;
 
+import com.example.blogproject.dto.LoadFile;
 import com.example.blogproject.dto.PostDtoRequest;
 import com.example.blogproject.dto.PostDtoResponse;
 import com.example.blogproject.dto.UserDtoResponse;
@@ -15,14 +16,13 @@ import com.example.blogproject.service.PostService;
 import com.example.blogproject.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.SpringApplication;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.security.Principal;
 import java.util.List;
@@ -152,6 +152,63 @@ public class PostServiceImpl implements PostService {
         return postRepository.existsByIdAndCommentsContaining(postId,comment);
     }
 
+    @Override
+    @Transactional
+    public PostDtoResponse addFileToPost(Long postId, MultipartFile file, Principal principal) {
+        return postRepository.findById(postId)
+                        .map(post -> {
+                            checkValidCredentials(post.getUser(),principal);
+                            if (post.getFile()!=null)
+                                throw new RuntimeException("File already exists");
+                            post.setFile(fileService.uploadFile(file));
+                            return postRepository.save(post);
+                        })
+                .map(this::getPostDtoResponse)
+                                .orElseThrow(()->new ResourceNotFoundException(Post.class,"id",postId));
+    }
+
+    @Override
+    @Transactional
+    public PostDtoResponse editFileToPost(Long postId, MultipartFile file, Principal principal) {
+        return postRepository.findById(postId)
+                .map(post -> {
+                    checkValidCredentials(post.getUser(),principal);
+                    if (post.getFile()==null)
+                        throw new RuntimeException("File doesn't exist");
+                    fileService.deleteFile(post.getFile());
+                    post.setFile(fileService.uploadFile(file));
+                    return postRepository.save(post);
+                })
+                .map(this::getPostDtoResponse)
+                .orElseThrow(()->new ResourceNotFoundException(Post.class,"id",postId));
+    }
+
+    @Override
+    public void deleteFileToPost(Long postId, Principal principal) {
+        postRepository.findById(postId)
+                .map(post -> {
+                    checkValidCredentials(post.getUser(),principal);
+                    if (post.getFile()==null)
+                        throw new RuntimeException("File doesn't exist");
+                    fileService.deleteFile(post.getFile());
+                    post.setFile(null);
+                    return postRepository.save(post);
+                })
+                .orElseThrow(()->new ResourceNotFoundException(Post.class,"id",postId));
+    }
+
+    @Override
+    public LoadFile getFileFromPost(Long postId) {
+        return postRepository.findById(postId)
+                .map(post -> {
+                    if (post.getFile()==null)
+                        throw new ResourceNotFoundException(LoadFile.class,"post",post);
+                    return post.getFile();
+                })
+                .map(fileService::downloadFile)
+                .orElseThrow(()-> new ResourceNotFoundException(Post.class,"id",postId));
+    }
+
     private PostDtoResponse getPostDtoResponse(Post post) {
         PostDtoResponse postDtoResponse = postMapper.mapToPostDtoResponse(post);
         if (post.getFile()!=null)
@@ -162,6 +219,13 @@ public class PostServiceImpl implements PostService {
     private void checkValidCredentials(UserDtoResponse userDtoResponse, Principal principal) {
         AuthenticatedUser currentUser = (AuthenticatedUser) principal;
         if (!userDtoResponse.getUsername().equals(currentUser.getUsername())||
+                currentUser.getAuthorities().stream().noneMatch(authority->authority.getAuthority().equals("ROLE_ADMIN"))){
+            throw new RuntimeException();
+        }
+    }
+    private void checkValidCredentials(User user, Principal principal) {
+        AuthenticatedUser currentUser = (AuthenticatedUser) principal;
+        if (!user.getUsername().equals(currentUser.getUsername())||
                 currentUser.getAuthorities().stream().noneMatch(authority->authority.getAuthority().equals("ROLE_ADMIN"))){
             throw new RuntimeException();
         }

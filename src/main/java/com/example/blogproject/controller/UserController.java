@@ -110,9 +110,9 @@ public class UserController {
                                   @PathVariable @ValidId Long userId,
                                   @Parameter(description = "User information for a user to be updated", required = true,
                                           schema = @Schema(implementation = UserDtoRequest.class))
-                                  @Valid @RequestBody UserDtoRequest userDtoRequest) {
+                                  @Valid @RequestBody UserDtoRequest userDtoRequest,Principal principal) {
         log.info("Update user with id : {} by : {}", userId, userDtoRequest);
-        return userService.update(userId, userDtoRequest, );
+        return userService.update(userId, userDtoRequest, principal);
     }
 
 

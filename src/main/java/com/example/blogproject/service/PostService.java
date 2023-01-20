@@ -1,10 +1,12 @@
 package com.example.blogproject.service;
 
+import com.example.blogproject.dto.LoadFile;
 import com.example.blogproject.dto.PostDtoRequest;
 import com.example.blogproject.dto.PostDtoResponse;
 import com.example.blogproject.model.Comment;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.security.Principal;
 import java.util.List;
@@ -29,4 +31,11 @@ public interface PostService {
 
     boolean existsByPostIdAndComment(Long postId, Comment comment);
 
+    PostDtoResponse addFileToPost(Long postId, MultipartFile file, Principal principal);
+
+    PostDtoResponse editFileToPost(Long postId, MultipartFile file, Principal principal);
+
+    void deleteFileToPost(Long postId, Principal principal);
+
+    LoadFile getFileFromPost(Long postId);
 }

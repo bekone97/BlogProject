@@ -52,10 +52,7 @@ public class SecurityConfig {
                 .addFilterBefore(jwtAuthenticationTokenFilterBean(), UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
-    @Bean
-    public PasswordEncoder passwordEncoder(){
-        return new BCryptPasswordEncoder(12);
-    }
+
 
     @Bean
     public JwtAuthenticationTokenFilter jwtAuthenticationTokenFilterBean(){

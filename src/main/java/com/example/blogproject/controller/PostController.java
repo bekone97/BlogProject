@@ -1,5 +1,6 @@
 package com.example.blogproject.controller;
 
+import com.example.blogproject.dto.LoadFile;
 import com.example.blogproject.dto.PostDtoRequest;
 import com.example.blogproject.dto.PostDtoResponse;
 import com.example.blogproject.handling.BlogApiErrorResponse;
@@ -15,10 +16,15 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.security.Principal;
 import java.util.List;
@@ -152,5 +158,44 @@ public class PostController {
                                                             @PathVariable @ValidId Long userId){
         log.info("Find all posts by user id : {}",userId);
         return postService.findAllByUserId(userId);
+    }
+
+    @PostMapping("/{postId}/file")
+    @ResponseStatus(CREATED)
+    public PostDtoResponse addFileToPost(@Parameter(description = "Id of post for file to be added",required = true)
+                                         @PathVariable Long postId,
+                                         @Parameter(description = "The file itself",required = true,schema = @Schema(implementation = MultipartFile.class))
+                                         @RequestBody MultipartFile file, Principal principal){
+        log.info("Added file to post with id : {} and with file content-type : {}",postId,file.getContentType());
+        return postService.addFileToPost(postId,file,principal);
+    }
+
+    @PutMapping("/{postId}/file")
+    @ResponseStatus(OK)
+    public PostDtoResponse editFileToPost(@Parameter(description = "Id of post for file to be edited",required = true)
+                                              @PathVariable Long postId,
+                                          @Parameter(description = "The new file itself",required = true,schema = @Schema(implementation = MultipartFile.class))
+                                              @RequestBody MultipartFile file, Principal principal){
+        log.info("Edit file to post with id : {} and with file content-type : {}",postId,file.getContentType());
+        return postService.editFileToPost(postId,file,principal);
+    }
+
+    @DeleteMapping("/{postId}/file")
+    @ResponseStatus(OK)
+    public void deleteFileFromPost(@Parameter(description = "Id of post for file to be deleted",required = true)
+                                     @PathVariable Long postId, Principal principal){
+        postService.deleteFileToPost(postId,principal);
+    }
+
+    @GetMapping("/{postId}/file")
+    @ResponseStatus(OK)
+    public ResponseEntity<ByteArrayResource> getFileFromPost(@Parameter(description = "Id of post for file to be deleted",required = true)
+                                                        @PathVariable Long postId){
+        log.info("Get file from post :{}",postId);
+        LoadFile file = postService.getFileFromPost(postId);
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(file.getFileType()))
+                .header(HttpHeaders.CONTENT_DISPOSITION,"attachment; filename=\""+file.getFileName()+"\"")
+                .body(new ByteArrayResource(file.getFile()));
     }
 }
