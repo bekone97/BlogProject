@@ -4,6 +4,7 @@ import com.example.blogproject.dto.UserDto;
 import com.example.blogproject.dto.UserDtoRequest;
 import com.example.blogproject.dto.UserDtoResponse;
 import com.example.blogproject.mapper.UserMapper;
+import com.example.blogproject.model.Role;
 import com.example.blogproject.model.User;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -21,9 +22,11 @@ public class UserMapperImpl implements UserMapper {
     }
 
     @Override
-    public User mapToUser(Long userId, UserDtoRequest userDtoRequest) {
+    public User mapToUser(Long userId, UserDtoRequest userDtoRequest, String password, Role role) {
         User user = modelMapper.map(userDtoRequest, User.class);
         user.setId(userId);
+        user.setPassword(password);
+        user.setRole(role);
         return user;
     }
 

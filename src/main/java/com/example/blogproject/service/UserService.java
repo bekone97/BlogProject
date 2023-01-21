@@ -3,6 +3,7 @@ package com.example.blogproject.service;
 import com.example.blogproject.dto.UserDto;
 import com.example.blogproject.dto.UserDtoRequest;
 import com.example.blogproject.dto.UserDtoResponse;
+import com.example.blogproject.security.user.AuthenticatedUser;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -19,15 +20,15 @@ public interface UserService extends UserDetailsService{
 
     UserDtoResponse save(UserDtoRequest userDtoRequest, String password);
 
-    UserDtoResponse update(Long userId, UserDtoRequest userDtoRequest, Principal principal);
+    UserDtoResponse update(Long userId, UserDtoRequest userDtoRequest, AuthenticatedUser authenticatedUser);
 
-    void deleteById(Long userId, Principal principal);
+    void deleteById(Long userId, AuthenticatedUser authenticatedUser);
 
     boolean existsById(Long id);
 
 
     UserDto getUserByUsername(String username);
 
-    UserDtoResponse changePasswordByUserId(Long id,String password,Principal principal);
+    UserDtoResponse changePasswordByUserId(Long id, String password,  AuthenticatedUser authenticatedUser);
 
 }

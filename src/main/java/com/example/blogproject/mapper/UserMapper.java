@@ -3,12 +3,13 @@ package com.example.blogproject.mapper;
 import com.example.blogproject.dto.UserDto;
 import com.example.blogproject.dto.UserDtoRequest;
 import com.example.blogproject.dto.UserDtoResponse;
+import com.example.blogproject.model.Role;
 import com.example.blogproject.model.User;
 
 public interface UserMapper {
      UserDtoResponse mapToUserDtoResponse(User user);
 
-     User mapToUser(Long userId, UserDtoRequest userDtoRequest);
+     User mapToUser(Long userId, UserDtoRequest userDtoRequest, String password, Role role);
 
      User mapToUser(UserDtoResponse userDtoResponse);
 

@@ -12,8 +12,10 @@ spring:
       max-file-size: 256MB
       max-request-size: 256MB
 
+
 mongock:
   migration-scan-package: com.example.blogproject.changeunit
+  test-enabled: false
 
 server:
   port: 8080

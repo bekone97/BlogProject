@@ -1,10 +1,14 @@
 package com.example.blogproject.security.filter;
 
+import com.example.blogproject.handling.BlogApiErrorResponse;
 import com.example.blogproject.security.token.JwtAuthenticationToken;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
@@ -15,7 +19,8 @@ import org.springframework.security.web.util.matcher.RequestMatcher;
 import java.io.IOException;
 
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
-
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+@Slf4j
 public class JwtAuthenticationTokenFilter extends AbstractAuthenticationProcessingFilter {
 
     public static final String TOKEN_PREFIX = "Bearer ";
@@ -54,6 +59,5 @@ public class JwtAuthenticationTokenFilter extends AbstractAuthenticationProcessi
         super.successfulAuthentication(request, response, chain, authResult);
         chain.doFilter(request,response);
     }
-
 
 }

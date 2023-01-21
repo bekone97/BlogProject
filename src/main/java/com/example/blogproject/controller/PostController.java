@@ -5,6 +5,7 @@ import com.example.blogproject.dto.PostDtoRequest;
 import com.example.blogproject.dto.PostDtoResponse;
 import com.example.blogproject.handling.BlogApiErrorResponse;
 import com.example.blogproject.handling.ValidationErrorResponse;
+import com.example.blogproject.security.user.AuthenticatedUser;
 import com.example.blogproject.service.PostService;
 import com.example.blogproject.validator.ValidId;
 import io.swagger.v3.oas.annotations.Operation;
@@ -22,6 +23,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -94,9 +97,10 @@ public class PostController {
     @ResponseStatus(CREATED)
     public PostDtoResponse save(@Parameter(description = "Post information for a new post to be created", required = true,
             schema = @Schema(implementation = PostDtoRequest.class))
-                                @Valid @RequestBody PostDtoRequest postDtoRequest, Principal principal){
+                                @Valid @RequestBody PostDtoRequest postDtoRequest,
+                                @AuthenticationPrincipal AuthenticatedUser authenticatedUser){
         log.info("Save new post by : {}",postDtoRequest);
-        return postService.save(postDtoRequest,principal);
+        return postService.save(postDtoRequest,authenticatedUser);
     }
 
     @Operation(summary = "Update an existing post")
@@ -117,9 +121,10 @@ public class PostController {
                                     @PathVariable @ValidId Long postId,
                                   @Parameter(description = "Post information for a post to be updated", required = true,
                                           schema = @Schema(implementation = PostDtoRequest.class))
-                                  @Valid @RequestBody PostDtoRequest postDtoRequest, Principal principal){
+                                  @Valid @RequestBody PostDtoRequest postDtoRequest,
+                                  @AuthenticationPrincipal AuthenticatedUser authenticatedUser){
         log.info("Update post by id : {} and by : {}",postId,postDtoRequest);
-        return postService.update(postId,postDtoRequest,principal);
+        return postService.update(postId,postDtoRequest,authenticatedUser);
     }
 
     @Operation(summary = "Delete an existing post")
@@ -135,9 +140,10 @@ public class PostController {
     @DeleteMapping("/{postId}")
     @ResponseStatus(OK)
     public void deleteById(@Parameter(description = "Id of post to be deleted", required = true, example = "1")
-                            @PathVariable @ValidId Long postId,Principal principal){
+                            @PathVariable @ValidId Long postId,
+                           @AuthenticationPrincipal AuthenticatedUser authenticatedUser){
         log.info("Delete post by id: {}",postId);
-        postService.deleteById(postId,principal);
+        postService.deleteById(postId,authenticatedUser);
     }
 
     @Operation(summary = "Returns posts of user by userId")
@@ -165,9 +171,10 @@ public class PostController {
     public PostDtoResponse addFileToPost(@Parameter(description = "Id of post for file to be added",required = true)
                                          @PathVariable Long postId,
                                          @Parameter(description = "The file itself",required = true,schema = @Schema(implementation = MultipartFile.class))
-                                         @RequestBody MultipartFile file, Principal principal){
+                                         @RequestBody MultipartFile file,
+                                         @AuthenticationPrincipal AuthenticatedUser authenticatedUser){
         log.info("Added file to post with id : {} and with file content-type : {}",postId,file.getContentType());
-        return postService.addFileToPost(postId,file,principal);
+        return postService.addFileToPost(postId,file,authenticatedUser);
     }
 
     @PutMapping("/{postId}/file")
@@ -175,16 +182,18 @@ public class PostController {
     public PostDtoResponse editFileToPost(@Parameter(description = "Id of post for file to be edited",required = true)
                                               @PathVariable Long postId,
                                           @Parameter(description = "The new file itself",required = true,schema = @Schema(implementation = MultipartFile.class))
-                                              @RequestBody MultipartFile file, Principal principal){
+                                              @RequestBody MultipartFile file,
+                                          @AuthenticationPrincipal AuthenticatedUser authenticatedUser){
         log.info("Edit file to post with id : {} and with file content-type : {}",postId,file.getContentType());
-        return postService.editFileToPost(postId,file,principal);
+        return postService.editFileToPost(postId,file,authenticatedUser);
     }
 
     @DeleteMapping("/{postId}/file")
     @ResponseStatus(OK)
     public void deleteFileFromPost(@Parameter(description = "Id of post for file to be deleted",required = true)
-                                     @PathVariable Long postId, Principal principal){
-        postService.deleteFileToPost(postId,principal);
+                                     @PathVariable Long postId,
+                                   @AuthenticationPrincipal AuthenticatedUser authenticatedUser){
+        postService.deleteFileToPost(postId,authenticatedUser);
     }
 
     @GetMapping("/{postId}/file")

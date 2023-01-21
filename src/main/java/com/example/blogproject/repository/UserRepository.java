@@ -12,4 +12,6 @@ public interface UserRepository extends MongoRepository<User,Long> {
     Optional<User> findUserByUsername(String username);
 
     boolean existsByIdAndUsername(Long id, String username);
+
+    boolean existsByUsername(String username);
 }

@@ -4,11 +4,11 @@ import com.example.blogproject.dto.LoadFile;
 import com.example.blogproject.dto.PostDtoRequest;
 import com.example.blogproject.dto.PostDtoResponse;
 import com.example.blogproject.model.Comment;
+import com.example.blogproject.security.user.AuthenticatedUser;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.security.Principal;
 import java.util.List;
 
 public interface PostService {
@@ -17,11 +17,11 @@ public interface PostService {
 
     Page<PostDtoResponse> findAll(Pageable pageable);
 
-    PostDtoResponse save(PostDtoRequest postDtoRequest, Principal principal);
+    PostDtoResponse save(PostDtoRequest postDtoRequest, AuthenticatedUser authenticatedUser);
 
-    PostDtoResponse update(Long postId, PostDtoRequest postDtoRequest, Principal principal);
+    PostDtoResponse update(Long postId, PostDtoRequest postDtoRequest, AuthenticatedUser principal);
 
-    void deleteById(Long postId, Principal principal);
+    void deleteById(Long postId, AuthenticatedUser authenticatedUser);
 
     List<PostDtoResponse> findAllByUserId(Long userId);
 
@@ -31,11 +31,11 @@ public interface PostService {
 
     boolean existsByPostIdAndComment(Long postId, Comment comment);
 
-    PostDtoResponse addFileToPost(Long postId, MultipartFile file, Principal principal);
+    PostDtoResponse addFileToPost(Long postId, MultipartFile file, AuthenticatedUser authenticatedUser);
 
-    PostDtoResponse editFileToPost(Long postId, MultipartFile file, Principal principal);
+    PostDtoResponse editFileToPost(Long postId, MultipartFile file, AuthenticatedUser authenticatedUser);
 
-    void deleteFileToPost(Long postId, Principal principal);
+    void deleteFileToPost(Long postId, AuthenticatedUser authenticatedUser);
 
     LoadFile getFileFromPost(Long postId);
 }

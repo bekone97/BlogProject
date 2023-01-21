@@ -4,6 +4,7 @@ import com.example.blogproject.dto.UserDtoRequest;
 import com.example.blogproject.dto.UserDtoResponse;
 import com.example.blogproject.handling.BlogApiErrorResponse;
 import com.example.blogproject.handling.ValidationErrorResponse;
+import com.example.blogproject.security.user.AuthenticatedUser;
 import com.example.blogproject.service.UserService;
 import com.example.blogproject.validator.ValidId;
 import io.swagger.v3.oas.annotations.Operation;
@@ -19,10 +20,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-
-import java.security.Principal;
 
 import static com.example.blogproject.utils.ConstantUtil.SwaggerResponse.*;
 import static org.springframework.http.HttpStatus.CREATED;
@@ -110,9 +110,10 @@ public class UserController {
                                   @PathVariable @ValidId Long userId,
                                   @Parameter(description = "User information for a user to be updated", required = true,
                                           schema = @Schema(implementation = UserDtoRequest.class))
-                                  @Valid @RequestBody UserDtoRequest userDtoRequest,Principal principal) {
+                                  @Valid @RequestBody UserDtoRequest userDtoRequest,
+                                  @AuthenticationPrincipal AuthenticatedUser authenticatedUser) {
         log.info("Update user with id : {} by : {}", userId, userDtoRequest);
-        return userService.update(userId, userDtoRequest, principal);
+        return userService.update(userId, userDtoRequest,authenticatedUser);
     }
 
 
@@ -129,8 +130,9 @@ public class UserController {
     @DeleteMapping("/{userId}")
     @ResponseStatus(OK)
     public void deleteById(@Parameter(description = "Id of user to be deleted", required = true, example = "1")
-                           @PathVariable @ValidId Long userId, Principal principal) {
+                           @PathVariable @ValidId Long userId,
+                           @AuthenticationPrincipal AuthenticatedUser authenticatedUser) {
         log.info("Delete user by id");
-        userService.deleteById(userId,principal);
+        userService.deleteById(userId, authenticatedUser);
     }
 }

@@ -10,6 +10,8 @@ import com.example.blogproject.service.UserService;
 import com.example.blogproject.service.impl.UserServiceImpl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
+import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -53,13 +55,13 @@ public class SecurityConfig {
         return http.build();
     }
 
-
     @Bean
     public JwtAuthenticationTokenFilter jwtAuthenticationTokenFilterBean(){
         final JwtAuthenticationTokenFilter authenticationTokenFilter =
                 new JwtAuthenticationTokenFilter(new OrRequestMatcher(
                         List.of(
-                                new AntPathRequestMatcher("/users"),
+                                new AntPathRequestMatcher("/users/**","PUT"),
+                                new AntPathRequestMatcher("/users/**","DELETE"),
                                 new AntPathRequestMatcher("/posts","POST"),
                                 new AntPathRequestMatcher("/posts","PUT"),
                                 new AntPathRequestMatcher("/posts","DELETE"),
@@ -78,5 +80,6 @@ public class SecurityConfig {
     public AuthenticationManager authenticationManager() {
         return new ProviderManager(Collections.singletonList(jwtAuthenticationProvider));
     }
+
 
 }

@@ -17,11 +17,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.security.Principal;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -59,8 +57,9 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     @Transactional
-    public CommentDtoResponse save(CommentDtoRequest commentDtoRequest, Long postId, Principal principal) {
+    public CommentDtoResponse save(CommentDtoRequest commentDtoRequest, Long postId, AuthenticatedUser authenticatedUser) {
         log.info("Save new comment by : {} to post with id : {}",commentDtoRequest,postId);
+
         if (postService.existsById(postId)) {
             UserDtoResponse userComment = userService.getById(commentDtoRequest.getUserId());
             Comment newComment = commentMapper.mapToComment(sequenceGeneratorService.generateSequence(
@@ -74,14 +73,14 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     @Transactional
-    public CommentDtoResponse update(Long commentId, Long postId, CommentDtoRequest commentDtoRequest, Principal principal) {
+    public CommentDtoResponse update(Long commentId, Long postId, CommentDtoRequest commentDtoRequest, AuthenticatedUser authenticatedUser) {
         log.info("Update comment with id : {} by : {} from post with id : {}",commentId,commentDtoRequest,postId);
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(()->{
                     log.error("Comment with id : {} wasn't found",commentId);
                     return  new ResourceNotFoundException(Comment.class,"id",commentId);
                 });
-        checkValidCredentials(postId,commentId, principal);
+        checkValidCredentials(postId,commentId, authenticatedUser);
         if (!postService.existsByPostIdAndComment(postId,comment)){
             throw new ResourceNotFoundException(Comment.class,"id",commentId,Post.class,"id",postId);
         }
@@ -90,14 +89,14 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
-    public void delete(Long commentId, Long postId, Principal principal) {
+    public void delete(Long commentId, Long postId, AuthenticatedUser authenticatedUser) {
         log.info("Delete comment by id : {}  from post with id : {}", commentId,postId);
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(()->{
                     log.error("Comment with id : {} wasn't found",commentId);
                     return  new ResourceNotFoundException(Comment.class,"id",commentId);
                 });
-        checkValidCredentials(postId,commentId,principal);
+        checkValidCredentials(postId,commentId, authenticatedUser);
         if (!postService.existsByPostIdAndComment(postId,comment)){
             throw new ResourceNotFoundException(Comment.class, "id", commentId, Post.class, "id", postId);
         }
@@ -106,14 +105,13 @@ public class CommentServiceImpl implements CommentService {
     }
 
 
-    private void checkValidCredentials(Long postId, Long commentId, Principal principal) {
-        AuthenticatedUser currentUser = (AuthenticatedUser) principal;
+    private void checkValidCredentials(Long postId, Long commentId, AuthenticatedUser authenticatedUser) {
         PostDtoResponse postDtoResponse = postService.getById(postId);
         boolean isValid = postDtoResponse.getComments().stream()
                 .filter(comment->comment.getId().equals(commentId))
                 .findFirst()
-                .map(comment-> comment.getUserDtoResponse().getUsername().equals(currentUser.getUsername()) ||
-                        currentUser.getAuthorities().stream().anyMatch(authority->authority.getAuthority().equals("ROLE_ADMIN")))
+                .map(comment-> comment.getUserDtoResponse().getUsername().equals(authenticatedUser.getUsername()) ||
+                        authenticatedUser.getAuthorities().stream().anyMatch(authority->authority.getAuthority().equals("ROLE_ADMIN")))
                 .orElseThrow(RuntimeException::new);
         if (!isValid)
             throw new RuntimeException();

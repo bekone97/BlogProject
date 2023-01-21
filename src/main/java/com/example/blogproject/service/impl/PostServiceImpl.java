@@ -24,7 +24,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.security.Principal;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -64,7 +63,7 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional
-    public PostDtoResponse save(PostDtoRequest postDtoRequest, Principal principal) {
+    public PostDtoResponse save(PostDtoRequest postDtoRequest, AuthenticatedUser authenticatedUser) {
         log.info("Save post from postDroRequest:{}",postDtoRequest);
 
         UserDtoResponse userDtoResponse = userService.getById(postDtoRequest.getUserId());
@@ -91,11 +90,11 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional
-    public PostDtoResponse update(Long postId, PostDtoRequest postDtoRequest, Principal principal) {
+    public PostDtoResponse update(Long postId, PostDtoRequest postDtoRequest, AuthenticatedUser authenticatedUser) {
         log.info("Check existing post by id : {} and update it by : {}",postId,postDtoRequest);
 
         UserDtoResponse userDtoResponse = userService.getById(postDtoRequest.getUserId());
-        checkValidCredentials(userDtoResponse,principal);
+        checkValidCredentials(userDtoResponse,authenticatedUser);
         return postRepository.findById(postId)
                 .map(post ->getPostFromRequest(postId,postDtoRequest,userDtoResponse,post.getComments()))
                 .map(postRepository::save)
@@ -108,10 +107,10 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional
-    public void deleteById(Long postId, Principal principal) {
+    public void deleteById(Long postId, AuthenticatedUser authenticatedUser) {
         log.info("Check existing post by id : {} and delete it",postId);
         PostDtoResponse byId = getById(postId);
-        checkValidCredentials(byId.getUserDtoResponse(), principal);
+        checkValidCredentials(byId.getUserDtoResponse(), authenticatedUser);
         postRepository.deleteById(postId);
     }
 
@@ -154,10 +153,10 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional
-    public PostDtoResponse addFileToPost(Long postId, MultipartFile file, Principal principal) {
+    public PostDtoResponse addFileToPost(Long postId, MultipartFile file, AuthenticatedUser authenticatedUser) {
         return postRepository.findById(postId)
                         .map(post -> {
-                            checkValidCredentials(post.getUser(),principal);
+                            checkValidCredentials(post.getUser(), authenticatedUser);
                             if (post.getFile()!=null)
                                 throw new RuntimeException("File already exists");
                             post.setFile(fileService.uploadFile(file));
@@ -169,10 +168,10 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional
-    public PostDtoResponse editFileToPost(Long postId, MultipartFile file, Principal principal) {
+    public PostDtoResponse editFileToPost(Long postId, MultipartFile file, AuthenticatedUser authenticatedUser) {
         return postRepository.findById(postId)
                 .map(post -> {
-                    checkValidCredentials(post.getUser(),principal);
+                    checkValidCredentials(post.getUser(), authenticatedUser);
                     if (post.getFile()==null)
                         throw new RuntimeException("File doesn't exist");
                     fileService.deleteFile(post.getFile());
@@ -184,10 +183,10 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public void deleteFileToPost(Long postId, Principal principal) {
+    public void deleteFileToPost(Long postId, AuthenticatedUser authenticatedUser) {
         postRepository.findById(postId)
                 .map(post -> {
-                    checkValidCredentials(post.getUser(),principal);
+                    checkValidCredentials(post.getUser(), authenticatedUser);
                     if (post.getFile()==null)
                         throw new RuntimeException("File doesn't exist");
                     fileService.deleteFile(post.getFile());
@@ -216,17 +215,15 @@ public class PostServiceImpl implements PostService {
         return postDtoResponse;
     }
 
-    private void checkValidCredentials(UserDtoResponse userDtoResponse, Principal principal) {
-        AuthenticatedUser currentUser = (AuthenticatedUser) principal;
-        if (!userDtoResponse.getUsername().equals(currentUser.getUsername())||
-                currentUser.getAuthorities().stream().noneMatch(authority->authority.getAuthority().equals("ROLE_ADMIN"))){
+    private void checkValidCredentials(UserDtoResponse userDtoResponse, AuthenticatedUser authenticatedUser) {
+        if (!userDtoResponse.getUsername().equals(authenticatedUser.getUsername())||
+                authenticatedUser.getAuthorities().stream().noneMatch(authority->authority.getAuthority().equals("ROLE_ADMIN"))){
             throw new RuntimeException();
         }
     }
-    private void checkValidCredentials(User user, Principal principal) {
-        AuthenticatedUser currentUser = (AuthenticatedUser) principal;
-        if (!user.getUsername().equals(currentUser.getUsername())||
-                currentUser.getAuthorities().stream().noneMatch(authority->authority.getAuthority().equals("ROLE_ADMIN"))){
+    private void checkValidCredentials(User user, AuthenticatedUser authenticatedUser) {
+        if (!user.getUsername().equals(authenticatedUser.getUsername())||
+                authenticatedUser.getAuthorities().stream().noneMatch(authority->authority.getAuthority().equals("ROLE_ADMIN"))){
             throw new RuntimeException();
         }
     }
