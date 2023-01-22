@@ -17,6 +17,8 @@ import lombok.SneakyThrows;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -27,10 +29,11 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-
+import static org.hamcrest.CoreMatchers.is;
 import static com.example.blogproject.utils.TestUtil.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -38,6 +41,7 @@ import static org.mockito.Mockito.*;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(controllers = UserController.class)
@@ -109,7 +113,32 @@ class UserControllerTest {
         assertEquals(objectMapper.writeValueAsString(expected),actual);
         verify(userService).findAll(pageable);
     }
+    @Test
+    @SneakyThrows
+    void deleteByIdFailIdConstraintWithStaticMock() {
+        String expectedMessage = "{general.validation.validId.positive}";
+        userId = -1L;
+        String timestampFormat = "2000-04-05T11:12:13";
+        LocalDateTime timestamp = LocalDateTime.parse(timestampFormat);
+        String token = getJwtToken();
+        authenticatedUser = new AuthenticatedUser(SUBJECT, token.substring(TOKEN_PREFIX.length()), "ROLE_ADMIN");
+        when(userService.loadUserByUsername(SUBJECT))
+                .thenReturn(userDetails);
+        try (MockedStatic<LocalDateTime> time = Mockito.mockStatic(LocalDateTime.class)) {
+            time.when(LocalDateTime::now).thenReturn(timestamp);
+            mockMvc.perform(delete("/users/{userId}", userId)
+                            .contentType(APPLICATION_JSON_VALUE)
+                            .header(AUTHORIZATION, token))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(result -> assertTrue(result.getResolvedException() instanceof ConstraintViolationException))
+                    .andExpect(result -> assertTrue(result.getResolvedException().getMessage().contains(expectedMessage)))
+                    .andExpect(jsonPath("$['timestamp']", is(timestampFormat)))
+                    .andExpect(jsonPath("$['message']", is("Validation error")));
 
+            verify(userService, never()).deleteById(userId, authenticatedUser);
+
+        }
+    }
     @SneakyThrows
     @Test
     void getUserById() {
@@ -297,24 +326,4 @@ class UserControllerTest {
 
         verify(userService).deleteById(userId,authenticatedUser);
     }
-
-    @Test
-    @SneakyThrows
-    void deleteByIdFailIdConstraint() {
-        String expectedMessage = "{general.validation.validId.positive}";
-        userId=-1L;
-        String token = getJwtToken();
-        authenticatedUser = new AuthenticatedUser(SUBJECT,token.substring(TOKEN_PREFIX.length()),"ROLE_ADMIN");
-        when(userService.loadUserByUsername(SUBJECT))
-                .thenReturn(userDetails);
-
-        mockMvc.perform(delete("/users/{userId}", userId)
-                        .contentType(APPLICATION_JSON_VALUE)
-                        .header(AUTHORIZATION,token))
-                .andExpect(status().isBadRequest())
-                .andExpect(result -> assertTrue(result.getResolvedException() instanceof ConstraintViolationException))
-                .andExpect(result -> assertTrue(result.getResolvedException().getMessage().contains(expectedMessage)));
-
-        verify(userService,never()).deleteById(userId,authenticatedUser);
     }
-}

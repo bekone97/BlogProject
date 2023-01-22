@@ -14,6 +14,7 @@ import com.example.blogproject.security.user.AuthenticatedUser;
 import com.example.blogproject.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -74,6 +75,7 @@ public class UserServiceImpl implements UserService {
     public UserDtoResponse save(UserDtoRequest userDtoRequest, String password) {
         log.info("Save user by :{}",userDtoRequest);
         checkUniqueUsername(userDtoRequest);
+
         User user = userMapper.mapToUser(sequenceGeneratorService.generateSequence(User.SEQUENCE_NAME),userDtoRequest,
                 passwordEncoder.encode(password), Role.ROLE_USER);
         return userMapper.mapToUserDtoResponse(userRepository.save(user));

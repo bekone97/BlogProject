@@ -15,7 +15,6 @@ spring:
 
 mongock:
   migration-scan-package: com.example.blogproject.changeunit
-  test-enabled: false
 
 server:
   port: 8080

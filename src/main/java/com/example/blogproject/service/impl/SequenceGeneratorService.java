@@ -22,16 +22,8 @@ public class SequenceGeneratorService {
     private final MongoOperations mongoOperations;
     @Transactional
     public Long generateSequence(String seqName){
-//        Query query = new Query(where("id").is(seqName));
-//        Update update = new Update().inc("seq",1L);
-//        DatabaseSequence counter = mongoOperations
-//                .findAndModify(query,
-//                        update, options().returnNew(true).upsert(true),DatabaseSequence.class);
         DatabaseSequence counter = mongoOperations.findAndModify(new Query(where("id").is(seqName)),
                 new Update().inc("seq", 1L), options().returnNew(true).upsert(true), DatabaseSequence.class);
-//        DatabaseSequence counter = mongoOperations.findAndModify();
-//                new Update().inc("seq",1), options().returnNew(true).upsert(true),
-//                DatabaseSequence.class);
         return !Objects.isNull(counter) ? counter.getSeq() : 1L;
     }
 }
