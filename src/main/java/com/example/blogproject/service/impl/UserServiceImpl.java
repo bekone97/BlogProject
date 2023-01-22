@@ -84,7 +84,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public UserDtoResponse save(UserDtoRequest userDtoRequest, String password) {
         log.info("Save user by :{}",userDtoRequest);
-        checkUniqueUsername(userDtoRequest);
+        checkUniqueUsernameAndEmail(userDtoRequest);
 
         User user = userMapper.mapToUser(sequenceGeneratorService.generateSequence(User.SEQUENCE_NAME),userDtoRequest,
                 passwordEncoder.encode(password), Role.ROLE_USER);
@@ -102,9 +102,7 @@ public class UserServiceImpl implements UserService {
         checkValidCredentials(userId, authenticatedUser);
         return userRepository.findById(userId)
                 .map(user->{
-                    if (!user.getUsername().equals(userDtoRequest.getUsername())){
-                       checkUniqueUsername(userDtoRequest);
-                    }
+                    checkUniqueUsernameAndEmailForUpdate(user,userDtoRequest);
                     return userMapper.mapToUser(userId, userDtoRequest,user.getPassword(),user.getRole());
                 })
                 .map(userRepository::save)
@@ -192,12 +190,23 @@ public class UserServiceImpl implements UserService {
     }
 
 
-    private void checkUniqueUsername(UserDtoRequest userDtoRequest) {
-        if (userRepository.existsByUsername(userDtoRequest.getUsername())) {
+    private void checkUniqueUsernameAndEmail(UserDtoRequest userDtoRequest) {
+        if (userRepository.existsByUsernameAndEmail(userDtoRequest.getUsername(),userDtoRequest.getEmail())) {
             log.error("User with username : {} already exists", userDtoRequest.getUsername());
             throw new NotUniqueResourceException(User.class,"username", userDtoRequest.getUsername());
         }
     }
+    private void checkUniqueUsernameAndEmailForUpdate(User user,UserDtoRequest userDtoRequest) {
+        if (!user.getUsername().equals(userDtoRequest.getUsername()) &&
+                userRepository.existsByUsername(user.getUsername())){
+            throw new NotUniqueResourceException(User.class,"username", userDtoRequest.getUsername());
+        }
+            if (!user.getEmail().equals(userDtoRequest.getEmail()) &&
+            userRepository.existsByEmail(userDtoRequest.getEmail())){
+                throw new NotUniqueResourceException(User.class,"email", userDtoRequest.getEmail());
+        }
+    }
+
 
     private void publishUpdate(Long userId) {
         applicationEventPublisher.publishEvent(ModelUpdatedEvent.builder()
