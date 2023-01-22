@@ -3,6 +3,10 @@ package com.example.blogproject.service.impl;
 import com.example.blogproject.dto.UserDto;
 import com.example.blogproject.dto.UserDtoRequest;
 import com.example.blogproject.dto.UserDtoResponse;
+import com.example.blogproject.event.ModelCreatedEvent;
+import com.example.blogproject.event.ModelDeletedEvent;
+import com.example.blogproject.event.ModelType;
+import com.example.blogproject.event.ModelUpdatedEvent;
 import com.example.blogproject.exception.NotUniqueResourceException;
 import com.example.blogproject.exception.NotValidCredentialsException;
 import com.example.blogproject.exception.ResourceNotFoundException;
@@ -14,6 +18,9 @@ import com.example.blogproject.security.user.AuthenticatedUser;
 import com.example.blogproject.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -28,6 +35,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -38,9 +46,11 @@ public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
     private final SequenceGeneratorService sequenceGeneratorService;
     private final PasswordEncoder passwordEncoder;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
 
     @Override
+    @Cacheable(value = "user",key = "#id")
     public UserDtoResponse getById(Long id) {
         return userRepository.findById(id)
                 .map(userMapper::mapToUserDtoResponse)
@@ -78,11 +88,15 @@ public class UserServiceImpl implements UserService {
 
         User user = userMapper.mapToUser(sequenceGeneratorService.generateSequence(User.SEQUENCE_NAME),userDtoRequest,
                 passwordEncoder.encode(password), Role.ROLE_USER);
-        return userMapper.mapToUserDtoResponse(userRepository.save(user));
+        UserDtoResponse userDtoResponse =  userMapper.mapToUserDtoResponse(userRepository.save(user));
+        publishSave(userDtoResponse.getId());
+        return userDtoResponse;
     }
+
 
     @Override
     @Transactional
+    @CachePut(value = "user",key = "#userId")
     public UserDtoResponse update(Long userId, UserDtoRequest userDtoRequest, AuthenticatedUser authenticatedUser) {
         log.info("Check existing user by userId : {} and update it by :{}",userId,userDtoRequest);
         checkValidCredentials(userId, authenticatedUser);
@@ -94,21 +108,34 @@ public class UserServiceImpl implements UserService {
                     return userMapper.mapToUser(userId, userDtoRequest,user.getPassword(),user.getRole());
                 })
                 .map(userRepository::save)
-                .map(userMapper::mapToUserDtoResponse)
+                .map(user -> {
+                    publishUpdate(userId);
+                    return userMapper.mapToUserDtoResponse(user);
+                })
                 .orElseThrow(()->{
                     log.error("User with id = {} wasn't found", userId);
                     return new ResourceNotFoundException(User.class,"id",userId);
                 });
     }
 
+
     @Override
     @Transactional
+    @CacheEvict(value = "user",key = "#userId")
     public void deleteById(Long userId, AuthenticatedUser authenticatedUser) {
         checkValidCredentials(userId,authenticatedUser);
         log.info("Check existing user by userId : {} and delete id",userId);
-        UserDtoResponse user = getById(userId);
-        userRepository.deleteById(userId);
+        Optional<User> optionalUser = userRepository.findById(userId);
+        if (optionalUser.isPresent()){
+            User user = optionalUser.get();
+            publishDelete(user);
+            userRepository.delete(user);
+        }else {
+            throw new ResourceNotFoundException(User.class,"id",userId);
+        }
     }
+
+
 
     @Override
     public boolean existsById(Long id) {
@@ -127,12 +154,14 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @CachePut(value = "user",key = "#id")
     public UserDtoResponse changePasswordByUserId(Long id, String password, AuthenticatedUser authenticatedUser) {
         checkValidCredentials(id, authenticatedUser);
         return userRepository.findById(id)
                 .map(user ->{
                     user.setPassword(passwordEncoder.encode(password));
                     User save = userRepository.save(user);
+                    publishUpdate(user.getId());
                     return userMapper.mapToUserDtoResponse(save);
                 } )
                 .orElseThrow(()->{
@@ -168,6 +197,26 @@ public class UserServiceImpl implements UserService {
             log.error("User with username : {} already exists", userDtoRequest.getUsername());
             throw new NotUniqueResourceException(User.class,"username", userDtoRequest.getUsername());
         }
+    }
+
+    private void publishUpdate(Long userId) {
+        applicationEventPublisher.publishEvent(ModelUpdatedEvent.builder()
+                .modelName(User.class.getName())
+                .modelId(userId)
+                .build());
+    }
+
+    private void publishDelete(User user) {
+        applicationEventPublisher.publishEvent(ModelDeletedEvent.builder()
+                .model(user)
+                .modelType(ModelType.USER)
+                .build());
+    }
+    private void publishSave(Long id) {
+        applicationEventPublisher.publishEvent(ModelCreatedEvent.builder()
+                .modelId(id)
+                .modelName(User.class.getName())
+                .build());
     }
 
 }

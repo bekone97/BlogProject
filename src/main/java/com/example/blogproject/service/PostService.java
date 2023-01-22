@@ -4,6 +4,7 @@ import com.example.blogproject.dto.LoadFile;
 import com.example.blogproject.dto.PostDtoRequest;
 import com.example.blogproject.dto.PostDtoResponse;
 import com.example.blogproject.model.Comment;
+import com.example.blogproject.model.User;
 import com.example.blogproject.security.user.AuthenticatedUser;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -38,4 +39,8 @@ public interface PostService {
     void deleteFileToPost(Long postId, AuthenticatedUser authenticatedUser);
 
     LoadFile getFileFromPost(Long postId);
+
+    void deleteAllByUser(User user);
+
+    void deleteCommentFromPostByComment(Comment comment);
 }

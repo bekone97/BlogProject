@@ -4,6 +4,10 @@ import com.example.blogproject.dto.LoadFile;
 import com.example.blogproject.dto.PostDtoRequest;
 import com.example.blogproject.dto.PostDtoResponse;
 import com.example.blogproject.dto.UserDtoResponse;
+import com.example.blogproject.event.ModelCreatedEvent;
+import com.example.blogproject.event.ModelDeletedEvent;
+import com.example.blogproject.event.ModelType;
+import com.example.blogproject.event.ModelUpdatedEvent;
 import com.example.blogproject.exception.ResourceNotFoundException;
 import com.example.blogproject.mapper.PostMapper;
 import com.example.blogproject.model.Comment;
@@ -16,6 +20,10 @@ import com.example.blogproject.service.PostService;
 import com.example.blogproject.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -25,6 +33,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -38,8 +47,10 @@ public class PostServiceImpl implements PostService {
     private final UserService userService;
     private final SequenceGeneratorService sequenceGeneratorService;
     private final FileService fileService;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     @Override
+    @Cacheable(value = "post",key = "#id")
     public PostDtoResponse getById(Long id) {
         log.info("Get post by id : {}",id);
         return postRepository.findById(id)
@@ -69,49 +80,44 @@ public class PostServiceImpl implements PostService {
         UserDtoResponse userDtoResponse = userService.getById(postDtoRequest.getUserId());
         Post post = getPostFromRequest(postDtoRequest, userDtoResponse);
         post=postRepository.save(post);
+        publishSave(post);
         return getPostDtoResponse(post);
     }
 
-    private Post getPostFromRequest(PostDtoRequest postDtoRequest, UserDtoResponse userDtoResponse) {
-        Post post = postMapper.mapToPost(sequenceGeneratorService.generateSequence(Post.SEQUENCE_NAME),
-                postDtoRequest, userDtoResponse);
-        if (postDtoRequest.getFile()!=null)
-            post.setFile(fileService.uploadFile(postDtoRequest.getFile()));
-        return post;
-    }
-    private Post getPostFromRequest(Long postId,PostDtoRequest postDtoRequest, UserDtoResponse userDtoResponse,
-                                    List<Comment> comments) {
-        Post post = postMapper.mapToPost(postId,
-                postDtoRequest, userDtoResponse,comments);
-        if (postDtoRequest.getFile()!=null)
-            post.setFile(fileService.uploadFile(postDtoRequest.getFile()));
-        return post;
-    }
 
     @Override
     @Transactional
+    @CachePut(value = "post",key = "#postId")
     public PostDtoResponse update(Long postId, PostDtoRequest postDtoRequest, AuthenticatedUser authenticatedUser) {
-        log.info("Check existing post by id : {} and update it by : {}",postId,postDtoRequest);
+        log.info("Check existing post by id : {} and update it by : {}", postId, postDtoRequest);
 
         UserDtoResponse userDtoResponse = userService.getById(postDtoRequest.getUserId());
-        checkValidCredentials(userDtoResponse,authenticatedUser);
+        checkValidCredentials(userDtoResponse, authenticatedUser);
         return postRepository.findById(postId)
-                .map(post ->getPostFromRequest(postId,postDtoRequest,userDtoResponse,post.getComments()))
+                .map(post -> getPostFromRequest(postId, postDtoRequest, userDtoResponse, post.getComments()))
                 .map(postRepository::save)
-                .map(this::getPostDtoResponse)
-                .orElseThrow(()->{
+                .map(post -> {
+                    publishUpdate(postId);
+                    return getPostDtoResponse(post);
+                })
+                .orElseThrow(() -> {
                     log.error("Post wasn't find by id : {}", postId);
-                    return new ResourceNotFoundException(Post.class,"id",postId);
+                    return new ResourceNotFoundException(Post.class, "id", postId);
                 });
     }
 
     @Override
     @Transactional
+    @CacheEvict(value = "post",key = "#postId")
     public void deleteById(Long postId, AuthenticatedUser authenticatedUser) {
         log.info("Check existing post by id : {} and delete it",postId);
-        PostDtoResponse byId = getById(postId);
-        checkValidCredentials(byId.getUserDtoResponse(), authenticatedUser);
-        postRepository.deleteById(postId);
+        PostDtoResponse dtoResponse = getById(postId);
+        checkValidCredentials(dtoResponse.getUserDtoResponse(), authenticatedUser);
+        applicationEventPublisher.publishEvent(ModelDeletedEvent.builder()
+                        .modelType(ModelType.POST)
+                        .model(dtoResponse.getId())
+                .build());
+        postRepository.deleteById(dtoResponse.getId());
     }
 
     @Override
@@ -141,6 +147,7 @@ public class PostServiceImpl implements PostService {
                     }else {
                         post.getComments().add(newComment);
                     }
+                    publishUpdate(postId);
                     return postRepository.save(post);
                 })
                 .orElseThrow(() -> new ResourceNotFoundException(Post.class, "id", postId));
@@ -160,6 +167,7 @@ public class PostServiceImpl implements PostService {
                             if (post.getFile()!=null)
                                 throw new RuntimeException("File already exists");
                             post.setFile(fileService.uploadFile(file));
+                            publishUpdate(postId);
                             return postRepository.save(post);
                         })
                 .map(this::getPostDtoResponse)
@@ -176,6 +184,7 @@ public class PostServiceImpl implements PostService {
                         throw new RuntimeException("File doesn't exist");
                     fileService.deleteFile(post.getFile());
                     post.setFile(fileService.uploadFile(file));
+                    publishUpdate(postId);
                     return postRepository.save(post);
                 })
                 .map(this::getPostDtoResponse)
@@ -191,9 +200,17 @@ public class PostServiceImpl implements PostService {
                         throw new RuntimeException("File doesn't exist");
                     fileService.deleteFile(post.getFile());
                     post.setFile(null);
+                    publishUpdate(postId);
                     return postRepository.save(post);
                 })
                 .orElseThrow(()->new ResourceNotFoundException(Post.class,"id",postId));
+    }
+
+    private void publishUpdate(Long postId) {
+        applicationEventPublisher.publishEvent(ModelUpdatedEvent.builder()
+                .modelId(postId)
+                .modelName(Post.class.getName())
+                .build());
     }
 
     @Override
@@ -206,6 +223,30 @@ public class PostServiceImpl implements PostService {
                 })
                 .map(fileService::downloadFile)
                 .orElseThrow(()-> new ResourceNotFoundException(Post.class,"id",postId));
+    }
+
+    @Override
+    @Transactional
+    public void deleteAllByUser(User user) {
+        log.info("Delete all posts by user Id : {}",user);
+        postRepository.findAllByUserId(user.getId()).stream()
+                .peek(post->applicationEventPublisher.publishEvent(ModelDeletedEvent.builder()
+                                .model(post)
+                                .modelType(ModelType.POST)
+                        .build()))
+                .forEach(postRepository::delete);
+    }
+
+    @Override
+    @Transactional
+    public void deleteCommentFromPostByComment(Comment comment) {
+        log.info("Delete comment from post with comment id : {}", comment);
+        Optional<Post> optionalPost = postRepository.findPostByCommentsIsContaining(comment);
+        if (optionalPost.isPresent()){
+            Post post = optionalPost.get();
+            post.getComments().remove(comment);
+            postRepository.save(post);
+        }
     }
 
     private PostDtoResponse getPostDtoResponse(Post post) {
@@ -226,6 +267,29 @@ public class PostServiceImpl implements PostService {
                 authenticatedUser.getAuthorities().stream().noneMatch(authority->authority.getAuthority().equals("ROLE_ADMIN"))){
             throw new RuntimeException();
         }
+    }
+
+    private void publishSave(Post post) {
+        applicationEventPublisher.publishEvent(ModelCreatedEvent.builder()
+                .modelId(post.getId())
+                .modelName(Post.class.getName())
+                .build());
+    }
+
+    private Post getPostFromRequest(PostDtoRequest postDtoRequest, UserDtoResponse userDtoResponse) {
+        Post post = postMapper.mapToPost(sequenceGeneratorService.generateSequence(Post.SEQUENCE_NAME),
+                postDtoRequest, userDtoResponse);
+        if (postDtoRequest.getFile()!=null)
+            post.setFile(fileService.uploadFile(postDtoRequest.getFile()));
+        return post;
+    }
+    private Post getPostFromRequest(Long postId,PostDtoRequest postDtoRequest, UserDtoResponse userDtoResponse,
+                                    List<Comment> comments) {
+        Post post = postMapper.mapToPost(postId,
+                postDtoRequest, userDtoResponse,comments);
+        if (postDtoRequest.getFile()!=null)
+            post.setFile(fileService.uploadFile(postDtoRequest.getFile()));
+        return post;
     }
 
 }

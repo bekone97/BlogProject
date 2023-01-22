@@ -20,6 +20,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.modelmapper.ModelMapper;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.*;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -50,6 +51,9 @@ public class UserServiceUnitTest {
 
     @Mock
     private PasswordEncoder passwordEncoder;
+
+    @Mock
+    private ApplicationEventPublisher applicationEventPublisher;
 
     @InjectMocks
     private UserServiceImpl userService;
@@ -168,6 +172,7 @@ public class UserServiceUnitTest {
         when(userMapper.mapToUser(1L,userDtoRequest, incomingPassword, user.getRole())).thenReturn(user);
         when(userMapper.mapToUserDtoResponse(user)).thenReturn(userDtoResponse);
         when(sequenceGeneratorService.generateSequence(User.SEQUENCE_NAME)).thenReturn(1L);
+
 
 
         UserDtoResponse actual = userService.save(userDtoRequest,incomingPassword);
@@ -295,12 +300,10 @@ public class UserServiceUnitTest {
     @Test
     void deleteById() {
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
-        when(userMapper.mapToUserDtoResponse(user)).thenReturn(userDtoResponse);
         userService.deleteById(1L, authenticatedUser);
 
         verify(userRepository).findById(1L);
-        verify(userRepository).deleteById(1L);
-        verify(userMapper).mapToUserDtoResponse(user);
+        verify(userRepository).delete(user);
     }
     @Test
     void deleteByIdFail() {

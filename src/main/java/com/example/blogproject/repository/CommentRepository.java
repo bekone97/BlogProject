@@ -9,4 +9,5 @@ import java.util.List;
 
 public interface CommentRepository extends MongoRepository<Comment,Long> {
     Page<Comment> findAllByIdIn(List<Long> ids, Pageable pageable);
+    List<Comment> findAllByUserId(Long userId);
 }

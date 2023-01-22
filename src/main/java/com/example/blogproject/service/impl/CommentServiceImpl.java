@@ -4,10 +4,15 @@ import com.example.blogproject.dto.CommentDtoRequest;
 import com.example.blogproject.dto.CommentDtoResponse;
 import com.example.blogproject.dto.PostDtoResponse;
 import com.example.blogproject.dto.UserDtoResponse;
+import com.example.blogproject.event.ModelCreatedEvent;
+import com.example.blogproject.event.ModelDeletedEvent;
+import com.example.blogproject.event.ModelType;
+import com.example.blogproject.event.ModelUpdatedEvent;
 import com.example.blogproject.exception.ResourceNotFoundException;
 import com.example.blogproject.mapper.CommentMapper;
 import com.example.blogproject.model.Comment;
 import com.example.blogproject.model.Post;
+import com.example.blogproject.model.User;
 import com.example.blogproject.repository.CommentRepository;
 import com.example.blogproject.security.user.AuthenticatedUser;
 import com.example.blogproject.service.CommentService;
@@ -15,6 +20,10 @@ import com.example.blogproject.service.PostService;
 import com.example.blogproject.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -33,7 +42,7 @@ public class CommentServiceImpl implements CommentService {
     private final UserService userService;
     private final CommentMapper commentMapper;
     private final SequenceGeneratorService sequenceGeneratorService;
-
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     @Override
     public Page<CommentDtoResponse> findAllCommentsByPost(Long postId, Pageable pageable) {
@@ -47,6 +56,7 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
+    @Cacheable(value = "comment",key = "#commentId")
     public CommentDtoResponse findCommentByPostIdAndCommentId(Long postId, Long commentId) {
         log.info("Get comment with id : {} from post with id : {}",commentId,postId);
         return postService.getById(postId).getComments().stream()
@@ -66,13 +76,22 @@ public class CommentServiceImpl implements CommentService {
                     Comment.SEQUENCE_NAME),userComment,commentDtoRequest,postId );
             newComment=commentRepository.save(newComment);
             postService.addCommentToPost(postId,newComment);
+            publishSave(newComment);
             return commentMapper.mapToCommentDtoResponse(newComment);
         }
         throw new ResourceNotFoundException(Post.class,"id",postId);
     }
 
+    private void publishSave(Comment newComment) {
+        applicationEventPublisher.publishEvent(ModelCreatedEvent.builder()
+                        .modelName(Comment.class.getName())
+                        .modelId(newComment.getId())
+                .build());
+    }
+
     @Override
     @Transactional
+    @CachePut(value = "comment",key = "#commentId")
     public CommentDtoResponse update(Long commentId, Long postId, CommentDtoRequest commentDtoRequest, AuthenticatedUser authenticatedUser) {
         log.info("Update comment with id : {} by : {} from post with id : {}",commentId,commentDtoRequest,postId);
         Comment comment = commentRepository.findById(commentId)
@@ -88,7 +107,10 @@ public class CommentServiceImpl implements CommentService {
         return commentMapper.mapToCommentDtoResponse(commentRepository.save(comment));
     }
 
+
+
     @Override
+    @CacheEvict(value = "comment",key = "#commentId")
     public void delete(Long commentId, Long postId, AuthenticatedUser authenticatedUser) {
         log.info("Delete comment by id : {}  from post with id : {}", commentId,postId);
         Comment comment = commentRepository.findById(commentId)
@@ -100,8 +122,35 @@ public class CommentServiceImpl implements CommentService {
         if (!postService.existsByPostIdAndComment(postId,comment)){
             throw new ResourceNotFoundException(Comment.class, "id", commentId, Post.class, "id", postId);
         }
+        publishDelete(comment);
         commentRepository.delete(comment);
         
+    }
+
+    private void publishDelete(Comment comment) {
+        applicationEventPublisher.publishEvent(ModelDeletedEvent.builder()
+                        .model(comment)
+                        .modelType(ModelType.COMMENT)
+                .build());
+    }
+    private void publishUpdate(Long commentId) {
+        applicationEventPublisher.publishEvent(ModelUpdatedEvent.builder()
+                .modelName(Comment.class.getName())
+                .modelId(commentId)
+                .build());
+    }
+    @Override
+    public void deleteAllByUser(User user) {
+        log.info("Delete all coments by user");
+        commentRepository.findAllByUserId(user.getId()).stream()
+                .peek(this::publishDelete)
+                .forEachOrdered(commentRepository::delete);
+    }
+
+    @Override
+    public void deleteAllByPost(Post post) {
+        log.info("Delete all comments by post : {}",post);
+        commentRepository.deleteAll(post.getComments());
     }
 
 
