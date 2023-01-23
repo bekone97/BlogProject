@@ -16,6 +16,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -123,12 +124,10 @@ public class UserServiceIntegrationTest extends DatabaseContainerInitializer{
     @Test
     @Order(5)
     void getUserByIdFailed(){
-
-
         ResourceNotFoundException actual = assertThrows(ResourceNotFoundException.class,
-                () -> userService.getById(1L));
+                () -> userService.getById(100L));
 
-        assertTrue(actual.getMessage().contains("User wasn't found by id=1"));
+        assertTrue(actual.getMessage().contains("User wasn't found by id=100"));
     }
 
     @Test
@@ -150,7 +149,6 @@ public class UserServiceIntegrationTest extends DatabaseContainerInitializer{
     @Order(7)
     void deleteById() {
         userRepository.save(user);
-
         userService.deleteById(user.getId(),authenticatedUser);
 
         assertFalse(userRepository.existsById(user.getId()));

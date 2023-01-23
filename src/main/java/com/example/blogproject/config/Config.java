@@ -1,11 +1,12 @@
 package com.example.blogproject.config;
 
-import com.example.blogproject.model.Role;
 import com.example.blogproject.model.User;
+import com.example.blogproject.props.InitUserProps;
 import com.google.common.cache.CacheBuilder;
 import io.mongock.runner.springboot.EnableMongock;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
@@ -13,6 +14,7 @@ import org.springframework.cache.concurrent.ConcurrentMapCache;
 import org.springframework.cache.concurrent.ConcurrentMapCacheManager;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 import org.springframework.data.web.config.EnableSpringDataWebSupport;
@@ -21,7 +23,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
@@ -32,7 +33,7 @@ import java.util.concurrent.TimeUnit;
 @EnableSpringDataWebSupport
 @EnableCaching
 public class Config {
-
+    private final InitUserProps initUserProps;
     @Bean
     public PasswordEncoder passwordEncoder(){
         return new BCryptPasswordEncoder(12);
@@ -40,26 +41,6 @@ public class Config {
     @Bean
     public ModelMapper modelMapper(){
         return new ModelMapper();
-    }
-
-    @Bean
-    public List<User> adminList() {
-        return List.of(User.builder()
-                        .id(1L)
-                        .username("admin")
-                        .password("password")
-                        .email("myachinenergo@mail.ru")
-                        .role(Role.ROLE_ADMIN)
-                        .dateOfBirth(LocalDate.now().minusYears(16))
-                        .build(),
-                User.builder()
-                        .id(2L)
-                        .username("secondUser")
-                        .password("secondPassword")
-                        .email("bekone97@mail.ru")
-                        .role(Role.ROLE_ADMIN)
-                        .dateOfBirth(LocalDate.now().minusYears(15))
-                        .build());
     }
 
     @Bean
@@ -96,5 +77,10 @@ public class Config {
                         .build().asMap(), false);
             }
         };
+    }
+
+    @Bean
+    public List<User> usersList(){
+        return initUserProps.getUsers();
     }
 }

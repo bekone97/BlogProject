@@ -1,8 +1,7 @@
 package com.example.blogproject.changeunit;
 
 import com.example.blogproject.model.User;
-import com.example.blogproject.model.sequence.DatabaseSequence;
-import com.example.blogproject.service.impl.SequenceGeneratorService;
+import com.example.blogproject.props.InitUserProps;
 import com.mongodb.client.model.IndexOptions;
 import io.mongock.api.annotations.*;
 import lombok.RequiredArgsConstructor;
@@ -10,8 +9,6 @@ import org.bson.Document;
 import org.springframework.data.mongodb.core.CollectionOptions;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.data.mongodb.core.query.Update;
-import org.springframework.data.mongodb.core.query.UpdateDefinition;
 import org.springframework.data.mongodb.core.schema.JsonSchemaProperty;
 import org.springframework.data.mongodb.core.schema.MongoJsonSchema;
 import org.springframework.data.mongodb.core.validation.Validator;
@@ -19,14 +16,12 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.util.List;
 
-import static org.springframework.data.mongodb.core.query.Criteria.where;
-
 @ChangeUnit(id="2023-17-01-init-user-collection", order = "002", author = "miachyn.a")
 @RequiredArgsConstructor
 public class InitUserCollection {
 
     private final MongoTemplate mongoTemplate;
-    private final List<User> adminList;
+    private final List<User> usersList;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
     @BeforeExecution
     public void beforeExecution(){
@@ -46,7 +41,7 @@ public class InitUserCollection {
 }
     @Execution
     public void changeSet(){
-        adminList.forEach(user -> {
+        usersList.forEach(user -> {
             user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
             mongoTemplate.save(user, "user");
         });

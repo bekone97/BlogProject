@@ -3,6 +3,7 @@ package com.example.blogproject.initializer;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
+import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.lifecycle.Startables;
 
 import java.util.ArrayList;
@@ -10,15 +11,13 @@ import java.util.List;
 
 public class DatabaseContainerInitializer {
 
-    public static final GenericContainer mongo;
+    @Container
+    public static final GenericContainer mongo=new GenericContainer("mongo:6.0.3")
+            .withExposedPorts(27017)
+            .waitingFor(Wait.forLogMessage(".*Waiting for connections.*\\n", 1))
+            .withEnv("MONGO_INITDB_DATABASE","db")
+            .withReuse(true);;
 
-    static {
-        mongo = new GenericContainer("mongo:6.0.3")
-                .withExposedPorts(27017)
-                .waitingFor(Wait.forLogMessage(".*Waiting for connections.*\\n", 1))
-                .withEnv("MONGO_INITDB_DATABASE","db")
-                .withReuse(true);
-    }
 
     static {
         if (!mongo.isRunning())

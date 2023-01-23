@@ -3,6 +3,10 @@ package com.example.blogproject.service;
 import com.example.blogproject.dto.UserDto;
 import com.example.blogproject.dto.UserDtoRequest;
 import com.example.blogproject.dto.UserDtoResponse;
+import com.example.blogproject.event.ModelCreatedEvent;
+import com.example.blogproject.event.ModelDeletedEvent;
+import com.example.blogproject.event.ModelType;
+import com.example.blogproject.event.ModelUpdatedEvent;
 import com.example.blogproject.exception.NotUniqueResourceException;
 import com.example.blogproject.exception.NotValidCredentialsException;
 import com.example.blogproject.exception.ResourceNotFoundException;
@@ -67,7 +71,9 @@ public class UserServiceUnitTest {
     UserDtoResponse userDtoResponse;
     UserDtoRequest userDtoRequest;
     AuthenticatedUser authenticatedUser ;
-
+    ModelCreatedEvent modelCreatedEvent;
+    ModelUpdatedEvent modelUpdatedEvent;
+    ModelDeletedEvent modelDeletedEvent;
 
     @BeforeEach
     public void setUp(){
@@ -84,6 +90,19 @@ public class UserServiceUnitTest {
         userDto = modelMapper.map(user,UserDto.class);
         authenticatedUser = new AuthenticatedUser("Myachin",
                 "someToken", Role.ROLE_ADMIN.name());
+        modelCreatedEvent = ModelCreatedEvent.builder()
+                .modelId(1L)
+                .modelName(User.class.getName())
+                .build();
+        modelUpdatedEvent=ModelUpdatedEvent.builder()
+                .modelId(1L)
+                .modelName(User.class.getName())
+                .build();
+
+        modelDeletedEvent = ModelDeletedEvent.builder()
+                .model(user)
+                .modelType(ModelType.USER)
+                .build();
     }
 
     @AfterEach
@@ -168,6 +187,7 @@ public class UserServiceUnitTest {
         UserDtoResponse expected = userDtoResponse;
         when(userRepository.save(user)).thenReturn(user);
         when(userRepository.existsByUsername(userDtoRequest.getUsername())).thenReturn(false);
+        when(userRepository.existsByEmail(userDtoRequest.getEmail())).thenReturn(false);
         when(passwordEncoder.encode(incomingPassword)).thenReturn(incomingPassword);
         when(userMapper.mapToUser(1L,userDtoRequest, incomingPassword, user.getRole())).thenReturn(user);
         when(userMapper.mapToUserDtoResponse(user)).thenReturn(userDtoResponse);
@@ -184,6 +204,8 @@ public class UserServiceUnitTest {
         verify(userMapper).mapToUser(1L,userDtoRequest, incomingPassword, user.getRole());
         verify(userMapper).mapToUserDtoResponse(user);
         verify(sequenceGeneratorService).generateSequence(User.SEQUENCE_NAME);
+        verify(userRepository).existsByEmail(userDtoRequest.getEmail());
+        verify(applicationEventPublisher).publishEvent(modelCreatedEvent);
     }
 
     @Test
@@ -199,6 +221,7 @@ public class UserServiceUnitTest {
         verify(userMapper,never()).mapToUser(1L,userDtoRequest, user.getPassword(), user.getRole());
         verify(userMapper,never()).mapToUserDtoResponse(user);
         verify(sequenceGeneratorService,never()).generateSequence(User.SEQUENCE_NAME);
+        verify(applicationEventPublisher,never()).publishEvent(modelCreatedEvent);
     }
 
     @Test
@@ -224,22 +247,24 @@ public class UserServiceUnitTest {
         verify(userRepository).save(changedUser);
         verify(userMapper).mapToUser(1L,userDtoRequest,user.getPassword(),user.getRole());
         verify(userMapper).mapToUserDtoResponse(changedUser);
+        verify(applicationEventPublisher).publishEvent(modelUpdatedEvent);
     }
 
     @Test
     void updateChangingName() {
         String newName = "yapaypayp";
-        userDtoRequest.setUsername(newName);
         User changedUser = User.builder()
-                .username("Myachin")
-                .password("Artsiom")
-                .email("myachinenergo@mail.ru")
+                .username(newName)
+                .password(user.getPassword())
+                .email(userDtoRequest.getEmail())
                 .id(1L)
                 .dateOfBirth(LocalDate.now().minusYears(12))
                 .role(Role.ROLE_ADMIN)
                 .build();
         UserDtoResponse expected = userDtoResponse;
         expected.setUsername(newName);
+        userDtoRequest.setUsername(newName);
+
 
         when(userRepository.findById(1L)).thenReturn(Optional.ofNullable(user));
         when(userRepository.existsByUsername(newName)).thenReturn(false);
@@ -304,6 +329,7 @@ public class UserServiceUnitTest {
 
         verify(userRepository).findById(1L);
         verify(userRepository).delete(user);
+        verify(applicationEventPublisher).publishEvent(modelDeletedEvent);
     }
     @Test
     void deleteByIdFail() {

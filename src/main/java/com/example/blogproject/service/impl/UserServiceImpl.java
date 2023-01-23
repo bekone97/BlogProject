@@ -191,14 +191,17 @@ public class UserServiceImpl implements UserService {
 
 
     private void checkUniqueUsernameAndEmail(UserDtoRequest userDtoRequest) {
-        if (userRepository.existsByUsernameAndEmail(userDtoRequest.getUsername(),userDtoRequest.getEmail())) {
+        if (userRepository.existsByUsername(userDtoRequest.getUsername())) {
             log.error("User with username : {} already exists", userDtoRequest.getUsername());
             throw new NotUniqueResourceException(User.class,"username", userDtoRequest.getUsername());
+        }else if(userRepository.existsByEmail(userDtoRequest.getEmail())){
+            log.error("User with email : {} already exists", userDtoRequest.getEmail());
+            throw new NotUniqueResourceException(User.class,"email", userDtoRequest.getEmail());
         }
     }
     private void checkUniqueUsernameAndEmailForUpdate(User user,UserDtoRequest userDtoRequest) {
         if (!user.getUsername().equals(userDtoRequest.getUsername()) &&
-                userRepository.existsByUsername(user.getUsername())){
+                userRepository.existsByUsername(userDtoRequest.getUsername())){
             throw new NotUniqueResourceException(User.class,"username", userDtoRequest.getUsername());
         }
             if (!user.getEmail().equals(userDtoRequest.getEmail()) &&
