@@ -18,9 +18,11 @@ public class InitPostCollection {
     public void beforeExecution(){
         mongoTemplate.createCollection("post", CollectionOptions.empty()
                         .validator(Validator.schema(MongoJsonSchema.builder()
+                                        .required("user,title")
                                 .properties(
                                         JsonSchemaProperty.int64("id"),
                                         JsonSchemaProperty.string("content"),
+                                        JsonSchemaProperty.string("title"),
                                         JsonSchemaProperty.object("user"),
                                         JsonSchemaProperty.objectId("file"),
                                         JsonSchemaProperty.array("comments")
@@ -30,21 +32,7 @@ public class InitPostCollection {
     }
     @Execution
     public void changeSet(){
-//        Post post = Post.builder()
-//                .id(1L)
-//                .user(User.builder()
-//                        .id(1L)
-//                        .username("admin")
-//                        .password("password")
-//                        .email("myachinenergo@mail.ru")
-//                        .build())
-//                .content("Some interesting post")
-//                .build();
-//        mongoTemplate.insert(post);
-//        mongoTemplate.update(Post.class)
-//                .matching(where("id").is(1L))
-//                .apply(new Update().push("user",mongoTemplate.findOne(new Q))
-//                .first();
+
     }
     @RollbackBeforeExecution
     public void rollbackBefore(){

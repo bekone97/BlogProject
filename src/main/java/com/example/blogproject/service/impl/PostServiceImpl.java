@@ -8,6 +8,7 @@ import com.example.blogproject.event.ModelCreatedEvent;
 import com.example.blogproject.event.ModelDeletedEvent;
 import com.example.blogproject.event.ModelType;
 import com.example.blogproject.event.ModelUpdatedEvent;
+import com.example.blogproject.exception.NotValidCredentialsException;
 import com.example.blogproject.exception.ResourceNotFoundException;
 import com.example.blogproject.mapper.PostMapper;
 import com.example.blogproject.model.Comment;
@@ -76,7 +77,8 @@ public class PostServiceImpl implements PostService {
     @Transactional
     public PostDtoResponse save(PostDtoRequest postDtoRequest, AuthenticatedUser authenticatedUser) {
         log.info("Save post from postDroRequest:{}",postDtoRequest);
-
+        if (authenticatedUser==null)
+            throw  new NotValidCredentialsException("User must be authenticated to save post");
         UserDtoResponse userDtoResponse = userService.getById(postDtoRequest.getUserId());
         Post post = getPostFromRequest(postDtoRequest, userDtoResponse);
         post=postRepository.save(post);
@@ -90,7 +92,6 @@ public class PostServiceImpl implements PostService {
     @CachePut(value = "post",key = "#postId")
     public PostDtoResponse update(Long postId, PostDtoRequest postDtoRequest, AuthenticatedUser authenticatedUser) {
         log.info("Check existing post by id : {} and update it by : {}", postId, postDtoRequest);
-
         UserDtoResponse userDtoResponse = userService.getById(postDtoRequest.getUserId());
         checkValidCredentials(userDtoResponse, authenticatedUser);
         return postRepository.findById(postId)
@@ -111,13 +112,17 @@ public class PostServiceImpl implements PostService {
     @CacheEvict(value = "post",key = "#postId")
     public void deleteById(Long postId, AuthenticatedUser authenticatedUser) {
         log.info("Check existing post by id : {} and delete it",postId);
-        PostDtoResponse dtoResponse = getById(postId);
-        checkValidCredentials(dtoResponse.getUserDtoResponse(), authenticatedUser);
+        Optional<Post> optionalPost = postRepository.findById(postId);
+        if (optionalPost.isEmpty()){
+            throw new ResourceNotFoundException(Post.class,"id",postId);
+        }
+        Post post = optionalPost.get();
+        checkValidCredentials(post.getUser(), authenticatedUser);
         applicationEventPublisher.publishEvent(ModelDeletedEvent.builder()
                         .modelType(ModelType.POST)
-                        .model(dtoResponse.getId())
+                        .model(post)
                 .build());
-        postRepository.deleteById(dtoResponse.getId());
+        postRepository.delete(post);
     }
 
     @Override
@@ -128,7 +133,7 @@ public class PostServiceImpl implements PostService {
                     .map(this::getPostDtoResponse)
                     .collect(Collectors.toList());
         }
-        throw new ResourceNotFoundException(User.class,"id",userId);
+        throw new ResourceNotFoundException(User.class,"userId",userId);
     }
 
     @Override
@@ -244,7 +249,10 @@ public class PostServiceImpl implements PostService {
         Optional<Post> optionalPost = postRepository.findPostByCommentsIsContaining(comment);
         if (optionalPost.isPresent()){
             Post post = optionalPost.get();
-            post.getComments().remove(comment);
+            List<Comment> collect = post.getComments().stream()
+                    .filter(comment1 -> !comment1.equals(comment))
+                    .collect(Collectors.toList());
+            post.setComments(collect);
             postRepository.save(post);
         }
     }
@@ -257,15 +265,15 @@ public class PostServiceImpl implements PostService {
     }
 
     private void checkValidCredentials(UserDtoResponse userDtoResponse, AuthenticatedUser authenticatedUser) {
-        if (!userDtoResponse.getUsername().equals(authenticatedUser.getUsername())||
+        if (authenticatedUser==null || !userDtoResponse.getUsername().equals(authenticatedUser.getUsername())||
                 authenticatedUser.getAuthorities().stream().noneMatch(authority->authority.getAuthority().equals("ROLE_ADMIN"))){
-            throw new RuntimeException();
+            throw new NotValidCredentialsException("Credentials of principle are not valid");
         }
     }
     private void checkValidCredentials(User user, AuthenticatedUser authenticatedUser) {
-        if (!user.getUsername().equals(authenticatedUser.getUsername())||
+        if (authenticatedUser==null ||!user.getUsername().equals(authenticatedUser.getUsername())||
                 authenticatedUser.getAuthorities().stream().noneMatch(authority->authority.getAuthority().equals("ROLE_ADMIN"))){
-            throw new RuntimeException();
+            throw new NotValidCredentialsException("Credentials of principle are not valid");
         }
     }
 

@@ -160,7 +160,7 @@ public class PostController {
     })
     @GetMapping("/byUser/{userId}")
     @ResponseStatus(OK)
-    public List<PostDtoResponse> findAllResponseByUserId(@Parameter(description = "Id of user for posts to be searched", required = true, example = "1")
+    public List<PostDtoResponse> findAllPostsByUserId(@Parameter(description = "Id of user for posts to be searched", required = true, example = "1")
                                                             @PathVariable @ValidId Long userId){
         log.info("Find all posts by user id : {}",userId);
         return postService.findAllByUserId(userId);

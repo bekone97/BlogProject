@@ -27,6 +27,8 @@ public class Post {
     @Id
     private Long id;
 
+    private String title;
+
     private String content;
 
     @DBRef

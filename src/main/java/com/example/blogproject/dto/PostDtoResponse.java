@@ -2,6 +2,8 @@ package com.example.blogproject.dto;
 
 import com.example.blogproject.model.Comment;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -25,6 +27,7 @@ public class PostDtoResponse {
     @Schema(description = "Some file in post")
     private LoadFile file;
 
+    private String title;
 
     @Schema(description = "List of comments which are in this post",implementation = CommentDtoResponse.class)
     private List<CommentDtoResponse> comments;
