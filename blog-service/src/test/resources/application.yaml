@@ -1,0 +1,20 @@
+mongock:
+    enabled: false
+    migration-scan-package: com.example.blogservice.changeunit
+server:
+    port: 8080
+
+jwt:
+    secret: secret
+spring:
+  profiles:
+        active: test
+init:
+  users:
+    -
+      id: 1
+      username: "admin"
+      password: "password"
+      email: "myachinenergo@mail.ru"
+      dateOfBirth: 1997-06-25
+      role: ROLE_ADMIN

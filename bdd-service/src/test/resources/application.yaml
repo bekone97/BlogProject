@@ -1,0 +1,8 @@
+spring:
+  main:
+    allow-bean-definition-overriding: true
+jwt:
+  secret: secret
+mongock:
+  enabled: true
+  migration-scan-package: com.example.blogservice
