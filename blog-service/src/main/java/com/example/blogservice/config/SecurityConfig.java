@@ -17,7 +17,6 @@ import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
@@ -38,31 +37,31 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        JwtLoginFilter jwtLoginFilter = new JwtLoginFilter(userService,jwtService);
+        JwtLoginFilter jwtLoginFilter = new JwtLoginFilter(userService, jwtService);
         jwtLoginFilter.setFilterProcessesUrl("/users/authenticate");
         http.csrf()
                 .disable()
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
-                .authorizeHttpRequests((authorize)->authorize.anyRequest().permitAll())
+                .authorizeHttpRequests((authorize) -> authorize.anyRequest().permitAll())
                 .addFilter(jwtLoginFilter)
                 .addFilterBefore(jwtAuthenticationTokenFilterBean(), UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 
     @Bean
-    public JwtAuthenticationTokenFilter jwtAuthenticationTokenFilterBean(){
+    public JwtAuthenticationTokenFilter jwtAuthenticationTokenFilterBean() {
         final JwtAuthenticationTokenFilter authenticationTokenFilter =
                 new JwtAuthenticationTokenFilter(new OrRequestMatcher(
                         List.of(
-                                new AntPathRequestMatcher("/users/**","PUT"),
-                                new AntPathRequestMatcher("/users/**","DELETE"),
-                                new AntPathRequestMatcher("/posts","POST"),
-                                new AntPathRequestMatcher("/posts","PUT"),
-                                new AntPathRequestMatcher("/posts","DELETE"),
-                                new AntPathRequestMatcher("/posts/**","POST"),
-                                new AntPathRequestMatcher("/posts/**","PUT"),
-                                new AntPathRequestMatcher("/posts/**","DELETE")
+                                new AntPathRequestMatcher("/users/**", "PUT"),
+                                new AntPathRequestMatcher("/users/**", "DELETE"),
+                                new AntPathRequestMatcher("/posts", "POST"),
+                                new AntPathRequestMatcher("/posts", "PUT"),
+                                new AntPathRequestMatcher("/posts", "DELETE"),
+                                new AntPathRequestMatcher("/posts/**", "POST"),
+                                new AntPathRequestMatcher("/posts/**", "PUT"),
+                                new AntPathRequestMatcher("/posts/**", "DELETE")
                         )
                 ), objectMapper);
         authenticationTokenFilter.setAuthenticationManager(authenticationManager());

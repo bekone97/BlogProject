@@ -55,25 +55,25 @@ public class UserServiceImpl implements UserService {
 
 
     @Override
-    @Cacheable(value = "user",key = "#id")
+    @Cacheable(value = "user", key = "#id")
     public UserDtoResponse getById(Long id) {
-        log.debug("Get user by id : {}",id);
+        log.debug("Get user by id : {}", id);
         return userRepository.findById(id)
                 .map(userMapper::mapToUserDtoResponse)
-                .orElseThrow(()->{
+                .orElseThrow(() -> {
                     log.error("User with id = {} wasn't found", id);
-                    return new ResourceNotFoundException(User.class,"id",id);
+                    return new ResourceNotFoundException(User.class, "id", id);
                 });
     }
 
     @Override
     public UserDto getInnerUserById(Long id) {
-        log.debug("Get user for security by id : {}",id);
-        return  userRepository.findById(id)
+        log.debug("Get user for security by id : {}", id);
+        return userRepository.findById(id)
                 .map(userMapper::mapToUserDto)
-                .orElseThrow(()->{
-                    log.error("There is no user with id : {}",id);
-                    return new ResourceNotFoundException(User.class,"id",id);
+                .orElseThrow(() -> {
+                    log.error("There is no user with id : {}", id);
+                    return new ResourceNotFoundException(User.class, "id", id);
                 });
     }
 
@@ -90,12 +90,12 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public UserDtoResponse save(UserDtoRequest userDtoRequest, String password) {
-        log.debug("Save user by :{} ",userDtoRequest);
+        log.debug("Save user by :{} ", userDtoRequest);
         checkUniqueUsernameAndEmail(userDtoRequest);
 
-        User user = userMapper.mapToUser(sequenceGeneratorService.generateSequence(User.SEQUENCE_NAME),userDtoRequest,
+        User user = userMapper.mapToUser(sequenceGeneratorService.generateSequence(User.SEQUENCE_NAME), userDtoRequest,
                 passwordEncoder.encode(password), Role.ROLE_USER);
-        UserDtoResponse userDtoResponse =  userMapper.mapToUserDtoResponse(userRepository.save(user));
+        UserDtoResponse userDtoResponse = userMapper.mapToUserDtoResponse(userRepository.save(user));
         publishSave(userDtoResponse.getId());
         return userDtoResponse;
     }
@@ -103,85 +103,84 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    @CachePut(value = "user",key = "#userId")
+    @CachePut(value = "user", key = "#userId")
     public UserDtoResponse update(Long userId, UserDtoRequest userDtoRequest, AuthenticatedUser authenticatedUser) {
-        log.info("Check existing user by userId : {} and update it by :{}",userId,userDtoRequest);
+        log.info("Check existing user by userId : {} and update it by :{}", userId, userDtoRequest);
         checkValidCredentials(userId, authenticatedUser);
         return userRepository.findById(userId)
-                .map(user->{
-                    checkUniqueUsernameAndEmailForUpdate(user,userDtoRequest);
-                    return userMapper.mapToUser(userId, userDtoRequest,user.getPassword(),user.getRole());
+                .map(user -> {
+                    checkUniqueUsernameAndEmailForUpdate(user, userDtoRequest);
+                    return userMapper.mapToUser(userId, userDtoRequest, user.getPassword(), user.getRole());
                 })
                 .map(userRepository::save)
                 .map(user -> {
                     publishUpdate(userId);
                     return userMapper.mapToUserDtoResponse(user);
                 })
-                .orElseThrow(()->{
+                .orElseThrow(() -> {
                     log.error("User with id = {} wasn't found", userId);
-                    return new ResourceNotFoundException(User.class,"id",userId);
+                    return new ResourceNotFoundException(User.class, "id", userId);
                 });
     }
 
 
     @Override
     @Transactional
-    @CacheEvict(value = "user",key = "#userId")
+    @CacheEvict(value = "user", key = "#userId")
     public void deleteById(Long userId, AuthenticatedUser authenticatedUser) {
-        checkValidCredentials(userId,authenticatedUser);
-        log.debug("Check existing user by userId : {} and delete id",userId);
+        checkValidCredentials(userId, authenticatedUser);
+        log.debug("Check existing user by userId : {} and delete id", userId);
         Optional<User> optionalUser = userRepository.findById(userId);
-        if (optionalUser.isPresent()){
+        if (optionalUser.isPresent()) {
             User user = optionalUser.get();
             publishDelete(user);
             userRepository.delete(user);
-        }else {
-            throw new ResourceNotFoundException(User.class,"id",userId);
+        } else {
+            throw new ResourceNotFoundException(User.class, "id", userId);
         }
     }
 
 
-
     @Override
     public boolean existsById(Long id) {
-        log.debug("Check existing user by user id : {}",id);
+        log.debug("Check existing user by user id : {}", id);
         return userRepository.existsById(id);
     }
 
     @Override
     public UserDto getUserByUsername(String username) {
-        log.debug("Get user by username : {}",username);
+        log.debug("Get user by username : {}", username);
         return userRepository.findUserByUsername(username)
                 .map(userMapper::mapToUserDto)
-                .orElseThrow(()->{
-                    log.error("There is no user with username : {}",username);
+                .orElseThrow(() -> {
+                    log.error("There is no user with username : {}", username);
                     return new NotValidTokenException(NOT_VALID_TOKEN);
                 });
     }
 
     @Override
-    @CachePut(value = "user",key = "#id")
+    @CachePut(value = "user", key = "#id")
     public UserDtoResponse changePasswordByUserId(Long id, String password, AuthenticatedUser authenticatedUser) {
         log.debug("Changing password by user : {}", id);
         checkValidCredentials(id, authenticatedUser);
         return userRepository.findById(id)
-                .map(user ->{
+                .map(user -> {
                     user.setPassword(passwordEncoder.encode(password));
                     User save = userRepository.save(user);
                     publishUpdate(user.getId());
                     return userMapper.mapToUserDtoResponse(save);
-                } )
-                .orElseThrow(()->{
-                    log.error("There isn't user with id : {}",id);
-                    throw new ResourceNotFoundException(User.class,"id",id);
+                })
+                .orElseThrow(() -> {
+                    log.error("There isn't user with id : {}", id);
+                    throw new ResourceNotFoundException(User.class, "id", id);
                 });
     }
 
     private void checkValidCredentials(Long id, AuthenticatedUser authenticatedUser) {
-        if (authenticatedUser.getAuthorities().stream().noneMatch(authority->authority.getAuthority().equals("ROLE_ADMIN") ||
-                !userRepository.existsByIdAndUsername(id,authenticatedUser.getUsername()))){
+        if (authenticatedUser.getAuthorities().stream().noneMatch(authority -> authority.getAuthority().equals("ROLE_ADMIN") ||
+                !userRepository.existsByIdAndUsername(id, authenticatedUser.getUsername()))) {
             log.error("User with username : {} tried to change data of user with id : {}",
-                    authenticatedUser.getUsername(),id);
+                    authenticatedUser.getUsername(), id);
             throw new NotValidCredentialsException("You have no rights to change this data");
         }
     }
@@ -202,20 +201,21 @@ public class UserServiceImpl implements UserService {
     private void checkUniqueUsernameAndEmail(UserDtoRequest userDtoRequest) {
         if (userRepository.existsByUsername(userDtoRequest.getUsername())) {
             log.error("User with username : {} already exists", userDtoRequest.getUsername());
-            throw new NotUniqueResourceException(User.class,"username", userDtoRequest.getUsername());
-        }else if(userRepository.existsByEmail(userDtoRequest.getEmail())){
+            throw new NotUniqueResourceException(User.class, "username", userDtoRequest.getUsername());
+        } else if (userRepository.existsByEmail(userDtoRequest.getEmail())) {
             log.error("User with email : {} already exists", userDtoRequest.getEmail());
-            throw new NotUniqueResourceException(User.class,"email", userDtoRequest.getEmail());
+            throw new NotUniqueResourceException(User.class, "email", userDtoRequest.getEmail());
         }
     }
-    private void checkUniqueUsernameAndEmailForUpdate(User user,UserDtoRequest userDtoRequest) {
+
+    private void checkUniqueUsernameAndEmailForUpdate(User user, UserDtoRequest userDtoRequest) {
         if (!user.getUsername().equals(userDtoRequest.getUsername()) &&
-                userRepository.existsByUsername(userDtoRequest.getUsername())){
-            throw new NotUniqueResourceException(User.class,"username", userDtoRequest.getUsername());
+                userRepository.existsByUsername(userDtoRequest.getUsername())) {
+            throw new NotUniqueResourceException(User.class, "username", userDtoRequest.getUsername());
         }
-            if (!user.getEmail().equals(userDtoRequest.getEmail()) &&
-            userRepository.existsByEmail(userDtoRequest.getEmail())){
-                throw new NotUniqueResourceException(User.class,"email", userDtoRequest.getEmail());
+        if (!user.getEmail().equals(userDtoRequest.getEmail()) &&
+                userRepository.existsByEmail(userDtoRequest.getEmail())) {
+            throw new NotUniqueResourceException(User.class, "email", userDtoRequest.getEmail());
         }
     }
 
@@ -233,6 +233,7 @@ public class UserServiceImpl implements UserService {
                 .modelType(ModelType.USER)
                 .build());
     }
+
     private void publishSave(Long id) {
         applicationEventPublisher.publishEvent(ModelCreatedEvent.builder()
                 .modelId(id)

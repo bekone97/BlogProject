@@ -2,15 +2,12 @@ package com.example.blogservice.audit;
 
 import com.example.blogservice.dto.PostDtoRequest;
 import com.example.blogservice.initializer.DatabaseContainerInitializer;
-import com.example.blogservice.model.ModelUpdateStatistics;
-import com.example.blogservice.model.Post;
 import com.example.blogservice.model.Role;
 import com.example.blogservice.model.User;
 import com.example.blogservice.repository.ModelUpdateStatisticsRepository;
 import com.example.blogservice.repository.PostRepository;
 import com.example.blogservice.repository.UserRepository;
 import com.example.blogservice.security.user.AuthenticatedUser;
-import com.example.blogservice.service.ModelUpdateStatisticsService;
 import com.example.blogservice.service.PostService;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
@@ -52,8 +49,8 @@ public class AsyncAuditTest extends DatabaseContainerInitializer {
     private AuthenticatedUser authenticatedUser;
 
     @BeforeEach
-    public void setUp(){
-        user=User.builder()
+    public void setUp() {
+        user = User.builder()
                 .id(1L)
                 .dateOfBirth(LocalDate.now().minusYears(13))
                 .email("myachinenergo@mail.ru")
@@ -68,30 +65,30 @@ public class AsyncAuditTest extends DatabaseContainerInitializer {
 
     @Test
     @SneakyThrows
-    void checkCount(){
+    void checkCount() {
         userRepository.save(user);
         int numberOfThreads = 10;
         ExecutorService executorService = Executors.newFixedThreadPool(numberOfThreads);
-        CountDownLatch latch  = new CountDownLatch(numberOfThreads);
+        CountDownLatch latch = new CountDownLatch(numberOfThreads);
 
-        for (int i=0; i<numberOfThreads;i++){
-            executorService.execute(()->{
+        for (int i = 0; i < numberOfThreads; i++) {
+            executorService.execute(() -> {
                 postService.save(PostDtoRequest.builder()
-                                .title("DAsd")
-                                .content("DSAd")
-                                .userId(user.getId())
-                        .build(),authenticatedUser);
+                        .title("DAsd")
+                        .content("DSAd")
+                        .userId(user.getId())
+                        .build(), authenticatedUser);
                 latch.countDown();
             });
         }
         latch.await();
 
         ThreadPoolTaskExecutor executor = (ThreadPoolTaskExecutor) applicationContext.getBean("threadPoolTaskExecutor");
-        while (executor.getThreadPoolExecutor().getCompletedTaskCount()<numberOfThreads){
+        while (executor.getThreadPoolExecutor().getCompletedTaskCount() < numberOfThreads) {
             Thread.yield();
         }
         executorService.shutdown();
-        assertEquals(numberOfThreads,postRepository.count());
+        assertEquals(numberOfThreads, postRepository.count());
         assertThat(modelUpdateStatisticsRepository.findAll())
                 .hasSize(numberOfThreads);
     }

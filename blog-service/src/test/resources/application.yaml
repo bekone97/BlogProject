@@ -1,14 +1,14 @@
 mongock:
-    enabled: false
-    migration-scan-package: com.example.blogservice.changeunit
+  enabled: false
+  migration-scan-package: com.example.blogservice.changeunit
 server:
-    port: 8080
+  port: 8080
 
 jwt:
-    secret: secret
+  secret: secret
 spring:
   profiles:
-        active: test
+    active: test
 init:
   users:
     location: some_wrong_file.json

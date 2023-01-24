@@ -36,7 +36,7 @@ public class PostMapperImpl implements PostMapper {
     public PostDtoResponse mapToPostDtoResponse(Post post) {
         PostDtoResponse postDtoResponse = modelMapper.map(post, PostDtoResponse.class);
         postDtoResponse.setUserDtoResponse(userMapper.mapToUserDtoResponse(post.getUser()));
-        postDtoResponse.setComments(post.getComments()==null || post.getComments().isEmpty()?
+        postDtoResponse.setComments(post.getComments() == null || post.getComments().isEmpty() ?
                 new ArrayList<>() :
                 post.getComments().stream()
                         .map(commentMapper::mapToCommentDtoResponse)

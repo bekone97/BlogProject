@@ -43,7 +43,7 @@ public class CommentServiceIntegrationTest extends DatabaseContainerInitializer 
     static class TestConfig {
 
         @Bean
-        public TaskExecutor taskExecutor(){
+        public TaskExecutor taskExecutor() {
             return new SyncTaskExecutor();
         }
 
@@ -74,7 +74,6 @@ public class CommentServiceIntegrationTest extends DatabaseContainerInitializer 
     ModelCreatedEvent modelCreatedEvent;
     ModelUpdatedEvent modelUpdatedEvent;
     ModelDeletedEvent modelDeletedEvent;
-
 
 
     @BeforeEach
@@ -143,18 +142,18 @@ public class CommentServiceIntegrationTest extends DatabaseContainerInitializer 
 
     @AfterEach
     void tearDown() {
-        User user=null;
-        UserDtoResponse userDtoResponse=null;
-        AuthenticatedUser authenticatedUser=null;
-        Comment comment=null;
-        CommentDtoResponse commentDtoResponse=null;
-        CommentDtoRequest commentDtoRequest=null;
-        Post post=null;
-        PostDtoRequest postDtoRequest=null;
-        PostDtoResponse postDtoResponse=null;
-        ModelCreatedEvent modelCreatedEvent=null;
-        ModelUpdatedEvent modelUpdatedEvent=null;
-        ModelDeletedEvent modelDeletedEvent=null;
+        User user = null;
+        UserDtoResponse userDtoResponse = null;
+        AuthenticatedUser authenticatedUser = null;
+        Comment comment = null;
+        CommentDtoResponse commentDtoResponse = null;
+        CommentDtoRequest commentDtoRequest = null;
+        Post post = null;
+        PostDtoRequest postDtoRequest = null;
+        PostDtoResponse postDtoResponse = null;
+        ModelCreatedEvent modelCreatedEvent = null;
+        ModelUpdatedEvent modelUpdatedEvent = null;
+        ModelDeletedEvent modelDeletedEvent = null;
 
     }
 
@@ -164,19 +163,20 @@ public class CommentServiceIntegrationTest extends DatabaseContainerInitializer 
         userRepository.save(user);
         postRepository.save(post);
         commentRepository.save(comment);
-        Pageable pageable = PageRequest.of(0,3, Sort.by("id"));
-        Page<CommentDtoResponse> expected = new PageImpl<>(List.of(commentDtoResponse),pageable,1);
+        Pageable pageable = PageRequest.of(0, 3, Sort.by("id"));
+        Page<CommentDtoResponse> expected = new PageImpl<>(List.of(commentDtoResponse), pageable, 1);
 
         Page<CommentDtoResponse> actual = commentService.findAllCommentsByPost(post.getId(), pageable);
 
-        assertEquals(expected.getContent(),actual.getContent());
+        assertEquals(expected.getContent(), actual.getContent());
     }
+
     @Test
     @Order(2)
     void findAllCommentsByPostFail() {
         String expectedMessage = "Post wasn't found by id=10";
         userRepository.save(user);
-        Pageable pageable = PageRequest.of(0,3, Sort.by("id"));
+        Pageable pageable = PageRequest.of(0, 3, Sort.by("id"));
 
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
                 () -> commentService.findAllCommentsByPost(10L, pageable));
@@ -193,7 +193,7 @@ public class CommentServiceIntegrationTest extends DatabaseContainerInitializer 
         CommentDtoResponse expected = commentDtoResponse;
         CommentDtoResponse actual = commentService.findCommentByPostIdAndCommentId(post.getId(), comment.getId());
 
-        assertEquals(expected,actual);
+        assertEquals(expected, actual);
     }
 
     @Test
@@ -221,7 +221,7 @@ public class CommentServiceIntegrationTest extends DatabaseContainerInitializer 
 
         CommentDtoResponse actual = commentService.save(commentDtoRequest, 1L, authenticatedUser);
 
-        assertEquals(expected,actual);
+        assertEquals(expected, actual);
     }
 
     @Test
@@ -242,7 +242,7 @@ public class CommentServiceIntegrationTest extends DatabaseContainerInitializer 
     void saveFailCredentials() {
         String expectedMessage = "User must be authenticated";
         userRepository.save(user);
-        authenticatedUser=null;
+        authenticatedUser = null;
 
 
         NotValidCredentialsException exception = assertThrows(NotValidCredentialsException.class,
@@ -259,9 +259,9 @@ public class CommentServiceIntegrationTest extends DatabaseContainerInitializer 
         postRepository.save(post);
         commentRepository.save(comment);
 
-        CommentDtoResponse actual = commentService.update(comment.getId(),post.getId(),commentDtoRequest,authenticatedUser);
+        CommentDtoResponse actual = commentService.update(comment.getId(), post.getId(), commentDtoRequest, authenticatedUser);
 
-        assertEquals(expected,actual);
+        assertEquals(expected, actual);
     }
 
     @Test
@@ -280,7 +280,7 @@ public class CommentServiceIntegrationTest extends DatabaseContainerInitializer 
     @Order(10)
     void updateFailCredentials() {
         String expectedMessage = "User has no enough permissions";
-        authenticatedUser = new AuthenticatedUser("sadasdas","DFsfsfs","ROLE_USER");
+        authenticatedUser = new AuthenticatedUser("sadasdas", "DFsfsfs", "ROLE_USER");
         userRepository.save(user);
         postRepository.save(post);
         commentRepository.save(comment);
@@ -312,11 +312,12 @@ public class CommentServiceIntegrationTest extends DatabaseContainerInitializer 
         postRepository.save(post);
         commentRepository.save(comment);
 
-        commentService.delete(comment.getId(),post.getId(),authenticatedUser);
+        commentService.delete(comment.getId(), post.getId(), authenticatedUser);
 
         assertFalse(commentRepository.existsById(comment.getId()));
         assertFalse(postRepository.findById(post.getId()).get().getComments().contains(comment));
     }
+
     @Test
     @Order(13)
     void deleteFailCommentId() {
@@ -335,7 +336,7 @@ public class CommentServiceIntegrationTest extends DatabaseContainerInitializer 
     @Order(14)
     void deleteFailCredentials() {
         String expectedMessage = "User must be authenticated";
-        authenticatedUser=null;
+        authenticatedUser = null;
         userRepository.save(user);
         postRepository.save(post);
         commentRepository.save(comment);

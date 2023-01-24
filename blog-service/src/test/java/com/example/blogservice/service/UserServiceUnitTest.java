@@ -63,21 +63,20 @@ public class UserServiceUnitTest {
     private UserServiceImpl userService;
 
 
-
-    private ModelMapper modelMapper =new ModelMapper();
+    private ModelMapper modelMapper = new ModelMapper();
 
     User user;
     UserDto userDto;
     UserDtoResponse userDtoResponse;
     UserDtoRequest userDtoRequest;
-    AuthenticatedUser authenticatedUser ;
+    AuthenticatedUser authenticatedUser;
     ModelCreatedEvent modelCreatedEvent;
     ModelUpdatedEvent modelUpdatedEvent;
     ModelDeletedEvent modelDeletedEvent;
 
     @BeforeEach
-    public void setUp(){
-        user=User.builder()
+    public void setUp() {
+        user = User.builder()
                 .username("Myachin")
                 .password("Artsiom")
                 .email("myachinenergo@mail.ru")
@@ -85,16 +84,16 @@ public class UserServiceUnitTest {
                 .dateOfBirth(LocalDate.now().minusYears(12))
                 .role(Role.ROLE_ADMIN)
                 .build();
-        userDtoRequest = modelMapper.map(user,UserDtoRequest.class);
-        userDtoResponse = modelMapper.map(user,UserDtoResponse.class);
-        userDto = modelMapper.map(user,UserDto.class);
+        userDtoRequest = modelMapper.map(user, UserDtoRequest.class);
+        userDtoResponse = modelMapper.map(user, UserDtoResponse.class);
+        userDto = modelMapper.map(user, UserDto.class);
         authenticatedUser = new AuthenticatedUser("Myachin",
                 "someToken", Role.ROLE_ADMIN.name());
         modelCreatedEvent = ModelCreatedEvent.builder()
                 .modelId(1L)
                 .modelName(User.class.getName())
                 .build();
-        modelUpdatedEvent=ModelUpdatedEvent.builder()
+        modelUpdatedEvent = ModelUpdatedEvent.builder()
                 .modelId(1L)
                 .modelName(User.class.getName())
                 .build();
@@ -106,15 +105,15 @@ public class UserServiceUnitTest {
     }
 
     @AfterEach
-    public void tearDown(){
+    public void tearDown() {
         user = null;
-        userDtoRequest=null;
-        userDtoResponse =null;
+        userDtoRequest = null;
+        userDtoResponse = null;
     }
 
     @Test
     void getById() {
-        UserDtoResponse expected= userDtoResponse;
+        UserDtoResponse expected = userDtoResponse;
         when(userRepository.findById(1L)).thenReturn(Optional.ofNullable(user));
         when(userMapper.mapToUserDtoResponse(user)).thenReturn(userDtoResponse);
 
@@ -135,7 +134,7 @@ public class UserServiceUnitTest {
 
         assertTrue(actual.getMessage().contains("User wasn't found by id=1"));
         verify(userRepository).findById(1L);
-        verify(userMapper,never()).mapToUserDtoResponse(user);
+        verify(userMapper, never()).mapToUserDtoResponse(user);
     }
 
     @Test
@@ -146,7 +145,7 @@ public class UserServiceUnitTest {
 
         var actual = userService.getInnerUserById(1L);
 
-        assertEquals(expected,actual);
+        assertEquals(expected, actual);
         verify(userRepository).findById(1L);
         verify(userMapper).mapToUserDto(user);
     }
@@ -155,18 +154,19 @@ public class UserServiceUnitTest {
     void getInnerUserByIdFail() {
         when(userRepository.findById(1L)).thenReturn(Optional.empty());
 
-        ResourceNotFoundException actual =assertThrows(ResourceNotFoundException.class,
-                ()->userService.getInnerUserById(1L));
+        ResourceNotFoundException actual = assertThrows(ResourceNotFoundException.class,
+                () -> userService.getInnerUserById(1L));
 
         assertTrue(actual.getMessage().contains("User wasn't found by id=1"));
         verify(userRepository).findById(1L);
-        verify(userMapper,never()).mapToUserDto(user);
+        verify(userMapper, never()).mapToUserDto(user);
     }
+
     @Test
     void findAll() {
         List<User> userList = List.of(user);
         Pageable pageable = PageRequest.of(1, 3, Sort.by("id"));
-        Page<User> page = new PageImpl<>(userList,pageable,1);
+        Page<User> page = new PageImpl<>(userList, pageable, 1);
         Page<UserDtoResponse> expected = page.map(user1 -> modelMapper.map(user, UserDtoResponse.class));
 
         when(userRepository.findAll(pageable)).thenReturn(page);
@@ -174,7 +174,7 @@ public class UserServiceUnitTest {
 
         Page<UserDtoResponse> actual = userService.findAll(pageable);
 
-        assertEquals(expected,actual);
+        assertEquals(expected, actual);
         verify(userRepository).findAll(pageable);
         verify(userMapper).mapToUserDtoResponse(user);
     }
@@ -189,19 +189,18 @@ public class UserServiceUnitTest {
         when(userRepository.existsByUsername(userDtoRequest.getUsername())).thenReturn(false);
         when(userRepository.existsByEmail(userDtoRequest.getEmail())).thenReturn(false);
         when(passwordEncoder.encode(incomingPassword)).thenReturn(incomingPassword);
-        when(userMapper.mapToUser(1L,userDtoRequest, incomingPassword, user.getRole())).thenReturn(user);
+        when(userMapper.mapToUser(1L, userDtoRequest, incomingPassword, user.getRole())).thenReturn(user);
         when(userMapper.mapToUserDtoResponse(user)).thenReturn(userDtoResponse);
         when(sequenceGeneratorService.generateSequence(User.SEQUENCE_NAME)).thenReturn(1L);
 
 
+        UserDtoResponse actual = userService.save(userDtoRequest, incomingPassword);
 
-        UserDtoResponse actual = userService.save(userDtoRequest,incomingPassword);
-
-        assertEquals(expected,actual);
+        assertEquals(expected, actual);
         verify(userRepository).save(user);
         verify(passwordEncoder).encode(incomingPassword);
         verify(userRepository).existsByUsername(userDtoRequest.getUsername());
-        verify(userMapper).mapToUser(1L,userDtoRequest, incomingPassword, user.getRole());
+        verify(userMapper).mapToUser(1L, userDtoRequest, incomingPassword, user.getRole());
         verify(userMapper).mapToUserDtoResponse(user);
         verify(sequenceGeneratorService).generateSequence(User.SEQUENCE_NAME);
         verify(userRepository).existsByEmail(userDtoRequest.getEmail());
@@ -213,15 +212,15 @@ public class UserServiceUnitTest {
         when(userRepository.existsByUsername(userDtoRequest.getUsername())).thenReturn(true);
 
         NotUniqueResourceException actual = assertThrows(NotUniqueResourceException.class,
-                ()->userService.save(userDtoRequest,"somePassword"));
+                () -> userService.save(userDtoRequest, "somePassword"));
 
         assertTrue(actual.getMessage().contains("User already exists with username=Myachin"));
-        verify(userRepository,never()).save(user);
+        verify(userRepository, never()).save(user);
         verify(userRepository).existsByUsername(userDtoRequest.getUsername());
-        verify(userMapper,never()).mapToUser(1L,userDtoRequest, user.getPassword(), user.getRole());
-        verify(userMapper,never()).mapToUserDtoResponse(user);
-        verify(sequenceGeneratorService,never()).generateSequence(User.SEQUENCE_NAME);
-        verify(applicationEventPublisher,never()).publishEvent(modelCreatedEvent);
+        verify(userMapper, never()).mapToUser(1L, userDtoRequest, user.getPassword(), user.getRole());
+        verify(userMapper, never()).mapToUserDtoResponse(user);
+        verify(sequenceGeneratorService, never()).generateSequence(User.SEQUENCE_NAME);
+        verify(applicationEventPublisher, never()).publishEvent(modelCreatedEvent);
     }
 
     @Test
@@ -233,19 +232,19 @@ public class UserServiceUnitTest {
         expected.setDateOfBirth(LocalDate.now().minusYears(13));
 
         when(userRepository.findById(1L)).thenReturn(Optional.ofNullable(user));
-        when(userMapper.mapToUser(1L,userDtoRequest,user.getPassword(),user.getRole())).thenReturn(changedUser);
+        when(userMapper.mapToUser(1L, userDtoRequest, user.getPassword(), user.getRole())).thenReturn(changedUser);
         when(userRepository.save(changedUser)).thenReturn(changedUser);
         when(userMapper.mapToUserDtoResponse(changedUser)).thenReturn(expected);
 
-        UserDtoResponse actual = userService.update(1L, userDtoRequest,authenticatedUser);
+        UserDtoResponse actual = userService.update(1L, userDtoRequest, authenticatedUser);
 
-        assertEquals(expected,actual);
+        assertEquals(expected, actual);
 
         verify(userRepository).findById(1L);
-        verify(userRepository,never()).existsByIdAndUsername(1L,userDtoRequest.getUsername());
-        verify(userRepository,never()).existsByUsername(expected.getUsername());
+        verify(userRepository, never()).existsByIdAndUsername(1L, userDtoRequest.getUsername());
+        verify(userRepository, never()).existsByUsername(expected.getUsername());
         verify(userRepository).save(changedUser);
-        verify(userMapper).mapToUser(1L,userDtoRequest,user.getPassword(),user.getRole());
+        verify(userMapper).mapToUser(1L, userDtoRequest, user.getPassword(), user.getRole());
         verify(userMapper).mapToUserDtoResponse(changedUser);
         verify(applicationEventPublisher).publishEvent(modelUpdatedEvent);
     }
@@ -268,20 +267,21 @@ public class UserServiceUnitTest {
 
         when(userRepository.findById(1L)).thenReturn(Optional.ofNullable(user));
         when(userRepository.existsByUsername(newName)).thenReturn(false);
-        when(userMapper.mapToUser(1L,userDtoRequest,user.getPassword(),user.getRole())).thenReturn(changedUser);
+        when(userMapper.mapToUser(1L, userDtoRequest, user.getPassword(), user.getRole())).thenReturn(changedUser);
         when(userRepository.save(changedUser)).thenReturn(changedUser);
         when(userMapper.mapToUserDtoResponse(changedUser)).thenReturn(expected);
 
-        UserDtoResponse actual = userService.update(1L, userDtoRequest,authenticatedUser);
+        UserDtoResponse actual = userService.update(1L, userDtoRequest, authenticatedUser);
 
-        assertEquals(expected,actual);
+        assertEquals(expected, actual);
 
         verify(userRepository).findById(1L);
         verify(userRepository).existsByUsername(newName);
         verify(userRepository).save(changedUser);
-        verify(userMapper).mapToUser(1L,userDtoRequest,user.getPassword(),user.getRole());
+        verify(userMapper).mapToUser(1L, userDtoRequest, user.getPassword(), user.getRole());
         verify(userMapper).mapToUserDtoResponse(changedUser);
     }
+
     @Test
     void updateFailCredentials() {
         authenticatedUser = new AuthenticatedUser("dsa;da;dl", "some token", "ROLE_USER");
@@ -294,9 +294,10 @@ public class UserServiceUnitTest {
         verify(userRepository, never()).findById(1L);
         verify(userRepository).existsByIdAndUsername(1L, authenticatedUser.getUsername());
     }
+
     @Test
     void updateFailId() {
-        authenticatedUser =new AuthenticatedUser("Myachin","someToken",Role.ROLE_USER.name());
+        authenticatedUser = new AuthenticatedUser("Myachin", "someToken", Role.ROLE_USER.name());
         when(userRepository.existsByIdAndUsername(1L, authenticatedUser.getUsername())).thenReturn(false);
         when(userRepository.findById(1L)).thenReturn(Optional.empty());
 
@@ -307,9 +308,10 @@ public class UserServiceUnitTest {
         verify(userRepository).findById(1L);
         verify(userRepository).existsByIdAndUsername(1L, authenticatedUser.getUsername());
     }
+
     @Test
     void updateFailUniqueUsername() {
-        String changedUsername= "anotherName";
+        String changedUsername = "anotherName";
         userDtoRequest.setUsername(changedUsername);
         when(userRepository.findById(1L)).thenReturn(Optional.ofNullable(user));
         when(userRepository.existsByUsername(userDtoRequest.getUsername())).thenReturn(true);
@@ -317,11 +319,12 @@ public class UserServiceUnitTest {
         NotUniqueResourceException actual = assertThrows(NotUniqueResourceException.class,
                 () -> userService.update(1L, userDtoRequest, authenticatedUser));
 
-        assertTrue(actual.getMessage().contains("User already exists with username="+changedUsername));
+        assertTrue(actual.getMessage().contains("User already exists with username=" + changedUsername));
         verify(userRepository).findById(1L);
-        verify(userRepository,never()).existsByIdAndUsername(1L, authenticatedUser.getUsername());
+        verify(userRepository, never()).existsByIdAndUsername(1L, authenticatedUser.getUsername());
         verify(userRepository).existsByUsername(changedUsername);
     }
+
     @Test
     void deleteById() {
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
@@ -331,16 +334,17 @@ public class UserServiceUnitTest {
         verify(userRepository).delete(user);
         verify(applicationEventPublisher).publishEvent(modelDeletedEvent);
     }
+
     @Test
     void deleteByIdFail() {
         when(userRepository.findById(1L)).thenReturn(Optional.empty());
 
-        ResourceNotFoundException actual= assertThrows(ResourceNotFoundException.class,
-                ()->userService.deleteById(1L, authenticatedUser));
+        ResourceNotFoundException actual = assertThrows(ResourceNotFoundException.class,
+                () -> userService.deleteById(1L, authenticatedUser));
 
         assertTrue(actual.getMessage().contains("User wasn't found by id=1"));
         verify(userRepository).findById(1L);
-        verify(userRepository,never()).deleteById(1L);
+        verify(userRepository, never()).deleteById(1L);
     }
 
 //    @Test
@@ -351,15 +355,15 @@ public class UserServiceUnitTest {
     void loadUserByUsername() {
         Collection<SimpleGrantedAuthority> authorities = new ArrayList<>();
         authorities.add(new SimpleGrantedAuthority((user.getRole().name())));
-        org.springframework.security.core.userdetails.User expected=
-                new org.springframework.security.core.userdetails.User(user.getUsername(),user.getPassword(),authorities);
+        org.springframework.security.core.userdetails.User expected =
+                new org.springframework.security.core.userdetails.User(user.getUsername(), user.getPassword(), authorities);
 
         when(userRepository.findUserByUsername(user.getUsername())).thenReturn(Optional.ofNullable(user));
         when(userMapper.mapToUserDto(user)).thenReturn(userDto);
 
         UserDetails actual = userService.loadUserByUsername(user.getUsername());
 
-        assertEquals(expected,actual);
+        assertEquals(expected, actual);
         verify(userRepository).findUserByUsername(user.getUsername());
         verify(userMapper).mapToUserDto(user);
     }
@@ -369,8 +373,8 @@ public class UserServiceUnitTest {
 
         when(userRepository.findUserByUsername(user.getUsername())).thenReturn(Optional.empty());
 
-       NotValidTokenException actual = assertThrows(NotValidTokenException.class,
-               ()->userService.loadUserByUsername(user.getUsername()));
+        NotValidTokenException actual = assertThrows(NotValidTokenException.class,
+                () -> userService.loadUserByUsername(user.getUsername()));
 
         assertTrue(actual.getMessage().contains("Token isn't valid"));
         verify(userRepository).findUserByUsername(user.getUsername());

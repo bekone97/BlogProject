@@ -20,7 +20,7 @@ public class CommentMapperImpl implements CommentMapper {
 
     @Override
     public CommentDtoResponse mapToCommentDtoResponse(Comment comment) {
-        if (comment!=null) {
+        if (comment != null) {
             CommentDtoResponse commentDtoResponse = modelMapper.map(comment, CommentDtoResponse.class);
             commentDtoResponse.setUserDtoResponse(userMapper.mapToUserDtoResponse(comment.getUser()));
             return commentDtoResponse;
@@ -32,7 +32,7 @@ public class CommentMapperImpl implements CommentMapper {
     public Comment mapToComment(Long commentId,
                                 UserDtoResponse userComment,
                                 CommentDtoRequest commentDtoRequest) {
-        Comment comment = modelMapper.map(commentDtoRequest,Comment.class);
+        Comment comment = modelMapper.map(commentDtoRequest, Comment.class);
         comment.setUser(userMapper.mapToUser(userComment));
         comment.setId(commentId);
         return comment;
@@ -40,7 +40,7 @@ public class CommentMapperImpl implements CommentMapper {
 
     @Override
     public Comment mapToComment(Long commentId, User user, CommentDtoRequest commentDtoRequest) {
-        Comment comment = modelMapper.map(commentDtoRequest,Comment.class);
+        Comment comment = modelMapper.map(commentDtoRequest, Comment.class);
         comment.setUser(user);
         comment.setId(commentId);
         return comment;

@@ -21,10 +21,10 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @RequiredArgsConstructor
 public class JwtLoginFilter extends UsernamePasswordAuthenticationFilter {
-    public static final String SECURITY_USERNAME_KEY= "username";
+    public static final String SECURITY_USERNAME_KEY = "username";
     public static final String SECURITY_PASSWORD_KEY = "password";
-    public static final String ACCESS_TOKEN="access_token";
-    public static final String REFRESH_TOKEN ="refresh_token";
+    public static final String ACCESS_TOKEN = "access_token";
+    public static final String REFRESH_TOKEN = "refresh_token";
 
     private final UserService userService;
     private final JWTService jwtService;
@@ -35,7 +35,7 @@ public class JwtLoginFilter extends UsernamePasswordAuthenticationFilter {
             throws AuthenticationException {
         String username = request.getParameter(SECURITY_USERNAME_KEY);
         String password = request.getParameter(SECURITY_PASSWORD_KEY);
-        return new UsernamePasswordAuthenticationToken(username,password);
+        return new UsernamePasswordAuthenticationToken(username, password);
     }
 
     @Override
@@ -45,8 +45,8 @@ public class JwtLoginFilter extends UsernamePasswordAuthenticationFilter {
                                             Authentication authResult) throws IOException, ServletException {
         String username = (String) authResult.getName();
         UserDto user = userService.getUserByUsername(username);
-        Map<String,String> tokens = jwtService.createAccessAndRefreshTokens(user);
+        Map<String, String> tokens = jwtService.createAccessAndRefreshTokens(user);
         response.setContentType(APPLICATION_JSON_VALUE);
-        new ObjectMapper().writeValue(response.getOutputStream(),tokens);
+        new ObjectMapper().writeValue(response.getOutputStream(), tokens);
     }
 }

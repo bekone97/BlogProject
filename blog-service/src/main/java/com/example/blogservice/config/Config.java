@@ -37,12 +37,14 @@ public class Config {
     private String fileLocation;
     private final InitUserProps initUserProps;
     private final JsonFileConverter jsonFileConverter;
+
     @Bean
-    public PasswordEncoder passwordEncoder(){
+    public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder(12);
     }
+
     @Bean
-    public ModelMapper modelMapper(){
+    public ModelMapper modelMapper() {
         return new ModelMapper();
     }
 
@@ -62,7 +64,7 @@ public class Config {
     }
 
     @Bean(name = "threadPoolTaskExecutor")
-    public Executor getAsyncExecutor(){
+    public Executor getAsyncExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setMaxPoolSize(100);
         executor.initialize();
@@ -83,7 +85,7 @@ public class Config {
     }
 
     @Bean
-    public List<User> usersList(){
+    public List<User> usersList() {
         return jsonFileConverter.readValueForList(fileLocation, User.class);
     }
 }

@@ -24,23 +24,23 @@ public class StatisticModelListener implements AsyncConfigurer {
 
     @Async("threadPoolTaskExecutor")
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void handleUpdateTransaction(ModelUpdatedEvent modelUpdatedEvent){
-        log.info("Received modelUpdatedEvent = {}",modelUpdatedEvent);
+    public void handleUpdateTransaction(ModelUpdatedEvent modelUpdatedEvent) {
+        log.info("Received modelUpdatedEvent = {}", modelUpdatedEvent);
         modelUpdateStatisticsService.update(ModelUpdateStatistics.builder()
-                        .id(String.format(MODEL_STATISTIC_ID_PATTERN,modelUpdatedEvent.getModelId(),modelUpdatedEvent.getModelName()))
-                        .modelId(modelUpdatedEvent.getModelId())
-                        .modelName(modelUpdatedEvent.getModelName())
+                .id(String.format(MODEL_STATISTIC_ID_PATTERN, modelUpdatedEvent.getModelId(), modelUpdatedEvent.getModelName()))
+                .modelId(modelUpdatedEvent.getModelId())
+                .modelName(modelUpdatedEvent.getModelName())
                 .build());
     }
 
     @Async("threadPoolTaskExecutor")
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void handleCreateTransaction(ModelCreatedEvent modelCreatedEvent){
-        log.info("Received modelCreatedEvent = {}",modelCreatedEvent);
+    public void handleCreateTransaction(ModelCreatedEvent modelCreatedEvent) {
+        log.info("Received modelCreatedEvent = {}", modelCreatedEvent);
         modelUpdateStatisticsService.save(ModelUpdateStatistics.builder()
-                        .id(String.format(MODEL_STATISTIC_ID_PATTERN,modelCreatedEvent.getModelId(),modelCreatedEvent.getModelName()))
-                        .modelId(modelCreatedEvent.getModelId())
-                        .modelName(modelCreatedEvent.getModelName())
+                .id(String.format(MODEL_STATISTIC_ID_PATTERN, modelCreatedEvent.getModelId(), modelCreatedEvent.getModelName()))
+                .modelId(modelCreatedEvent.getModelId())
+                .modelName(modelCreatedEvent.getModelName())
                 .build());
 
     }

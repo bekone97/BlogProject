@@ -54,7 +54,7 @@ public class PostServiceIntegrationTest extends DatabaseContainerInitializer {
     private CommentRepository commentRepository;
 
     @Autowired
-    private ModelMapper modelMapper ;
+    private ModelMapper modelMapper;
 
     User user;
     UserDtoResponse userDtoResponse;
@@ -68,9 +68,10 @@ public class PostServiceIntegrationTest extends DatabaseContainerInitializer {
     ModelCreatedEvent modelCreatedEvent;
     ModelUpdatedEvent modelUpdatedEvent;
     ModelDeletedEvent modelDeletedEvent;
+
     @BeforeEach
-    public void setUp(){
-        user=User.builder()
+    public void setUp() {
+        user = User.builder()
                 .username("Myachin")
                 .password("Artsiom")
                 .email("myachinenergo@mail.ru")
@@ -79,18 +80,18 @@ public class PostServiceIntegrationTest extends DatabaseContainerInitializer {
                 .role(Role.ROLE_ADMIN)
                 .build();
         userRepository.save(user);
-        userDtoResponse = modelMapper.map(user,UserDtoResponse.class);
+        userDtoResponse = modelMapper.map(user, UserDtoResponse.class);
         authenticatedUser = new AuthenticatedUser("Myachin",
                 "someToken", Role.ROLE_ADMIN.name());
 
-        comment= Comment.builder()
+        comment = Comment.builder()
                 .id(1L)
                 .user(user)
                 .text("someText")
                 .build();
-        commentDtoRequest=modelMapper.map(comment,CommentDtoRequest.class);
+        commentDtoRequest = modelMapper.map(comment, CommentDtoRequest.class);
         commentDtoRequest.setUserId(1L);
-        commentDtoResponse=modelMapper.map(comment,CommentDtoResponse.class);
+        commentDtoResponse = modelMapper.map(comment, CommentDtoResponse.class);
         post = Post.builder()
                 .id(1L)
                 .title("Yayaya")
@@ -98,24 +99,24 @@ public class PostServiceIntegrationTest extends DatabaseContainerInitializer {
                 .user(user)
                 .comments(new ArrayList<>())
                 .build();
-        postDtoRequest = modelMapper.map(post,PostDtoRequest.class);
+        postDtoRequest = modelMapper.map(post, PostDtoRequest.class);
         postDtoRequest.setUserId(1L);
-        postDtoResponse=modelMapper.map(post,PostDtoResponse.class);
+        postDtoResponse = modelMapper.map(post, PostDtoResponse.class);
         postDtoResponse.setUserDtoResponse(userDtoResponse);
     }
 
     @AfterEach
-    public void tearDown(){
+    public void tearDown() {
         user = null;
-        comment=null;
-        commentDtoRequest=null;
-        commentDtoResponse=null;
-        post=null;
+        comment = null;
+        commentDtoRequest = null;
+        commentDtoResponse = null;
+        post = null;
         postDtoRequest = null;
         postDtoResponse = null;
-        modelCreatedEvent=null;
-        modelDeletedEvent=null;
-        modelUpdatedEvent=null;
+        modelCreatedEvent = null;
+        modelDeletedEvent = null;
+        modelUpdatedEvent = null;
         postRepository.deleteAll();
         userRepository.deleteAll();
     }
@@ -128,7 +129,7 @@ public class PostServiceIntegrationTest extends DatabaseContainerInitializer {
 
         PostDtoResponse actual = postService.getById(post.getId());
 
-        assertEquals(expect,actual);
+        assertEquals(expect, actual);
 
     }
 
@@ -152,11 +153,11 @@ public class PostServiceIntegrationTest extends DatabaseContainerInitializer {
         postRepository.save(post);
         List<Post> posts = List.of(post);
         Pageable pageable = PageRequest.of(0, 3, Sort.by("id"));
-        Page<PostDtoResponse> expected = new PageImpl<>(List.of(postDtoResponse),pageable,1);
+        Page<PostDtoResponse> expected = new PageImpl<>(List.of(postDtoResponse), pageable, 1);
 
         Page<PostDtoResponse> actual = postService.findAll(pageable);
 
-        assertEquals(expected.getContent(),actual.getContent());
+        assertEquals(expected.getContent(), actual.getContent());
     }
 
     @Test
@@ -168,7 +169,7 @@ public class PostServiceIntegrationTest extends DatabaseContainerInitializer {
 
         PostDtoResponse actual = postService.save(postDtoRequest, authenticatedUser);
 
-        assertEquals(expected,actual);
+        assertEquals(expected, actual);
 
     }
 
@@ -177,7 +178,7 @@ public class PostServiceIntegrationTest extends DatabaseContainerInitializer {
     void saveFail() {
 
         String expectedMessage = "User must be authenticated to save post";
-        authenticatedUser=null;
+        authenticatedUser = null;
 
         NotValidCredentialsException actual = assertThrows(NotValidCredentialsException.class,
                 () -> postService.save(postDtoRequest, authenticatedUser));
@@ -198,7 +199,7 @@ public class PostServiceIntegrationTest extends DatabaseContainerInitializer {
 
         PostDtoResponse actual = postService.update(post.getId(), postDtoRequest, authenticatedUser);
 
-        assertEquals(expected,actual);
+        assertEquals(expected, actual);
 
     }
 
@@ -220,7 +221,7 @@ public class PostServiceIntegrationTest extends DatabaseContainerInitializer {
     void updateFailCredentials() {
 
         String expectedMessage = "User has no enough permissions";
-        authenticatedUser=null;
+        authenticatedUser = null;
 
         NotValidCredentialsException exception = assertThrows(NotValidCredentialsException.class,
                 () -> postService.update(post.getId(), postDtoRequest, authenticatedUser));
@@ -235,7 +236,7 @@ public class PostServiceIntegrationTest extends DatabaseContainerInitializer {
 
         postRepository.save(post);
 
-        postService.deleteById(post.getId(),authenticatedUser);
+        postService.deleteById(post.getId(), authenticatedUser);
 
 
     }
@@ -258,7 +259,7 @@ public class PostServiceIntegrationTest extends DatabaseContainerInitializer {
     void deleteByIdFailCredentials() {
 
         postRepository.save(post);
-        authenticatedUser=null;
+        authenticatedUser = null;
         String expectedMessage = "User has no enough permissions";
         when(postRepository.findById(post.getId())).thenReturn(Optional.ofNullable(post));
 
@@ -268,6 +269,7 @@ public class PostServiceIntegrationTest extends DatabaseContainerInitializer {
         assertTrue(actual.getMessage().contains(expectedMessage));
 
     }
+
     @Test
     @Order(12)
     void findAllByUserId() {
@@ -277,7 +279,7 @@ public class PostServiceIntegrationTest extends DatabaseContainerInitializer {
 
         List<PostDtoResponse> actual = postService.findAllByUserId(user.getId());
 
-        assertEquals(expected,actual);
+        assertEquals(expected, actual);
         verify(postRepository).findAllByUserId(user.getId());
 
     }
@@ -292,7 +294,7 @@ public class PostServiceIntegrationTest extends DatabaseContainerInitializer {
                 () -> postService.findAllByUserId(100L));
 
         assertTrue(actual.getMessage().contains(expectedMessage));
-        verify(postRepository,never()).findAllByUserId(100L);
+        verify(postRepository, never()).findAllByUserId(100L);
     }
 
     @Test
@@ -323,7 +325,7 @@ public class PostServiceIntegrationTest extends DatabaseContainerInitializer {
         postRepository.save(post);
         commentRepository.save(comment);
 
-        postService.addCommentToPost(post.getId(),comment);
+        postService.addCommentToPost(post.getId(), comment);
 
         assertTrue(postRepository.findById(post.getId()).get().getComments().contains(comment));
     }

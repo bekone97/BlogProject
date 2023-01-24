@@ -7,7 +7,6 @@ import com.example.blogservice.mapper.UserMapper;
 import com.example.blogservice.model.RefreshToken;
 import com.example.blogservice.repository.RefreshTokenRepository;
 import com.example.blogservice.service.RefreshTokenService;
-import com.example.blogservice.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -34,7 +33,7 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
     @Override
     @Transactional
     public RefreshToken save(RefreshToken refreshToken) {
-        log.debug("Save new refresh token : {}",refreshToken);
+        log.debug("Save new refresh token : {}", refreshToken);
         refreshToken.setRefreshTokenId(sequenceGeneratorService.generateSequence(RefreshToken.SEQUENCE_NAME));
         return refreshTokenRepository.save(refreshToken);
     }
@@ -42,7 +41,7 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
     @Override
     @Transactional
     public RefreshToken update(RefreshToken refreshToken, Long id) {
-        log.debug("Save refresh token : {} with id : {}",refreshToken,id);
+        log.debug("Save refresh token : {} with id : {}", refreshToken, id);
         refreshToken.setRefreshTokenId(id);
         return refreshTokenRepository.save(refreshToken);
     }
@@ -50,7 +49,7 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
 
     @Override
     public void deactivateRefreshTokensByUserId(Long userUd) {
-        log.debug("Deactivate old refresh token by user userUd : {}",userUd);
+        log.debug("Deactivate old refresh token by user userUd : {}", userUd);
         refreshTokenRepository.findRefreshTokensByUserId(userUd)
                 .stream()
                 .filter(RefreshToken::isActive)
@@ -60,18 +59,20 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
                     refreshTokenRepository.save(refreshToken);
                 });
     }
+
     @Transactional
-    public void deactivateToken(RefreshToken refreshToken, LocalDateTime currentDate){
+    public void deactivateToken(RefreshToken refreshToken, LocalDateTime currentDate) {
         refreshToken.setActive(false);
         refreshToken.setRevoked(currentDate);
         refreshTokenRepository.save(refreshToken);
     }
+
     @Override
     @Transactional
     public RefreshToken createRefreshToken(UserDto user) {
-        log.debug("Create refresh token for user : {}",user.getUsername());
+        log.debug("Create refresh token for user : {}", user.getUsername());
         LocalDateTime currentDate = LocalDateTime.now();
-        String token = getRefreshToken(user,currentDate);
+        String token = getRefreshToken(user, currentDate);
         RefreshToken refreshToken = RefreshToken.builder()
                 .token(Base64.getEncoder().encodeToString(token.getBytes()))
                 .user(userMapper.mapToUser(user))
@@ -85,17 +86,17 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
     @Override
     public RefreshToken getByToken(String token) {
         return refreshTokenRepository.findRefreshTokenByToken(token)
-                .orElseThrow(()-> new ResourceNotFoundException(RefreshToken.class, "refreshToken", token));
+                .orElseThrow(() -> new ResourceNotFoundException(RefreshToken.class, "refreshToken", token));
     }
 
 
     @Override
     @Transactional
     public RefreshToken replaceToken(RefreshToken oldToken, UserDto user, LocalDateTime currentDate) {
-        log.debug("Replacement old token : {} by new token for user : {}",oldToken,user.getUsername());
+        log.debug("Replacement old token : {} by new token for user : {}", oldToken, user.getUsername());
         checkOldToken(oldToken, user, currentDate);
-        deactivateToken(oldToken,currentDate);
-        String newToken = getRefreshToken(user,currentDate);
+        deactivateToken(oldToken, currentDate);
+        String newToken = getRefreshToken(user, currentDate);
         RefreshToken refreshToken = RefreshToken.builder()
                 .token(Base64.getEncoder().encodeToString(newToken.getBytes()))
                 .user(userMapper.mapToUser(user))
@@ -106,7 +107,6 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
                 .build();
         return save(refreshToken);
     }
-
 
 
     private String getRefreshToken(UserDto user, LocalDateTime currentDate) {
@@ -135,8 +135,8 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
     }
 
     private void checkOldToken(RefreshToken token, UserDto user, LocalDateTime currentDate) {
-        checkTokenIsActive(token,user.getId());
-        checkTokenExpires(token,currentDate,user.getId());
+        checkTokenIsActive(token, user.getId());
+        checkTokenExpires(token, currentDate, user.getId());
     }
 
 

@@ -46,7 +46,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(controllers = UserController.class)
-@Import(value = {SecurityConfig.class,JwtAuthenticationProvider.class})
+@Import(value = {SecurityConfig.class, JwtAuthenticationProvider.class})
 class UserControllerTest {
 
     @Autowired
@@ -69,8 +69,8 @@ class UserControllerTest {
     private AuthenticatedUser authenticatedUser;
 
     @BeforeEach
-    public void setUp(){
-        userId=1L;
+    public void setUp() {
+        userId = 1L;
         userDtoResponse = UserDtoResponse.builder()
                 .id(userId)
                 .username("myachin")
@@ -82,17 +82,17 @@ class UserControllerTest {
                 .dateOfBirth(LocalDate.now().minusYears(13))
                 .email("Myachinenergo@mail.ru")
                 .build();
-        somePassword="somePassword";
-        authenticatedUser= new AuthenticatedUser("someUser","laskdlkd","ROLE_ADMIN");
-                Collection<SimpleGrantedAuthority> authorities = new ArrayList<>();
+        somePassword = "somePassword";
+        authenticatedUser = new AuthenticatedUser("someUser", "laskdlkd", "ROLE_ADMIN");
+        Collection<SimpleGrantedAuthority> authorities = new ArrayList<>();
         authorities.add(new SimpleGrantedAuthority((Role.ROLE_ADMIN.name())));
-        userDetails=new org.springframework.security.core.userdetails.User(SUBJECT,somePassword,authorities);
+        userDetails = new org.springframework.security.core.userdetails.User(SUBJECT, somePassword, authorities);
     }
 
     @AfterEach
-    public void tearDown(){
-        userDtoRequest=null;
-        userDtoResponse=null;
+    public void tearDown() {
+        userDtoRequest = null;
+        userDtoResponse = null;
     }
 
 
@@ -101,7 +101,7 @@ class UserControllerTest {
     void getAllUsers() {
         List<UserDtoResponse> userList = List.of(userDtoResponse);
         Pageable pageable = PageRequest.of(1, 3, Sort.by("id"));
-        Page<UserDtoResponse> expected = new PageImpl<>(userList,pageable,1);
+        Page<UserDtoResponse> expected = new PageImpl<>(userList, pageable, 1);
         when(userService.findAll(pageable)).thenReturn(expected);
 
         String actual = mockMvc.perform(get("/users")
@@ -111,9 +111,10 @@ class UserControllerTest {
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
 
-        assertEquals(objectMapper.writeValueAsString(expected),actual);
+        assertEquals(objectMapper.writeValueAsString(expected), actual);
         verify(userService).findAll(pageable);
     }
+
     @Test
     @SneakyThrows
     void deleteByIdFailIdConstraintWithStaticMock() {
@@ -140,6 +141,7 @@ class UserControllerTest {
 
         }
     }
+
     @SneakyThrows
     @Test
     void getUserById() {
@@ -150,7 +152,7 @@ class UserControllerTest {
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
 
-        assertEquals(objectMapper.writeValueAsString(expected),actual);
+        assertEquals(objectMapper.writeValueAsString(expected), actual);
         verify(userService).getById(1L);
     }
 
@@ -158,7 +160,7 @@ class UserControllerTest {
     @Test
     void getUserByIdFailNoUser() {
         String expectedMessage = "User wasn't found by id";
-        when(userService.getById(userId)).thenThrow(new ResourceNotFoundException(User.class,"id",1));
+        when(userService.getById(userId)).thenThrow(new ResourceNotFoundException(User.class, "id", 1));
 
         TestUtil.getUserById(mockMvc, userDtoResponse.getId())
                 .andExpect(status().isNotFound())
@@ -172,14 +174,14 @@ class UserControllerTest {
     @Test
     void getUserByIdFailWrongUserId() {
         String expectedMessage = "{general.validation.validId.positive}";
-        userId=-1L;
+        userId = -1L;
 
         TestUtil.getUserById(mockMvc, userId)
                 .andExpect(status().isBadRequest())
                 .andExpect(result -> assertTrue(result.getResolvedException() instanceof ConstraintViolationException))
                 .andExpect(result -> assertTrue(result.getResolvedException().getMessage().contains(expectedMessage)));
 
-        verify(userService,never()).getById(userId);
+        verify(userService, never()).getById(userId);
     }
 
 
@@ -187,7 +189,7 @@ class UserControllerTest {
     @SneakyThrows
     void save() {
         UserDtoResponse expected = userDtoResponse;
-        when(userService.save(userDtoRequest,somePassword)).thenReturn(userDtoResponse);
+        when(userService.save(userDtoRequest, somePassword)).thenReturn(userDtoResponse);
 
         String actual = mockMvc.perform(post("/users")
                         .param("password", somePassword)
@@ -196,15 +198,16 @@ class UserControllerTest {
                 .andExpect(status().isCreated())
                 .andReturn().getResponse().getContentAsString();
 
-        assertEquals(objectMapper.writeValueAsString(expected),actual);
-        verify(userService).save(userDtoRequest,somePassword);
+        assertEquals(objectMapper.writeValueAsString(expected), actual);
+        verify(userService).save(userDtoRequest, somePassword);
     }
+
     @Test
     @SneakyThrows
     void saveFailPasswordConstraint() {
         String expectedMessage = "User password can't be less than 6 symbols";
-        somePassword="sa";
-      mockMvc.perform(post("/users")
+        somePassword = "sa";
+        mockMvc.perform(post("/users")
                         .param("password", somePassword)
                         .contentType(APPLICATION_JSON_VALUE)
                         .content(objectMapper.writeValueAsString(userDtoRequest)))
@@ -213,7 +216,7 @@ class UserControllerTest {
                 .andExpect(result -> assertTrue(result.getResolvedException().getMessage().contains(expectedMessage)));
 
 
-        verify(userService,never()).save(userDtoRequest,somePassword);
+        verify(userService, never()).save(userDtoRequest, somePassword);
     }
 
     @Test
@@ -229,27 +232,28 @@ class UserControllerTest {
                 .andExpect(result -> assertTrue(result.getResolvedException() instanceof MethodArgumentNotValidException))
                 .andExpect(result -> assertTrue(result.getResolvedException().getMessage().contains(expectedMessage)));
 
-        verify(userService,never()).save(userDtoRequest,somePassword);
+        verify(userService, never()).save(userDtoRequest, somePassword);
     }
+
     @Test
     @SneakyThrows
     void update() {
         String token = getJwtToken();
-        authenticatedUser = new AuthenticatedUser(SUBJECT,token.substring(TOKEN_PREFIX.length()),"ROLE_ADMIN");
+        authenticatedUser = new AuthenticatedUser(SUBJECT, token.substring(TOKEN_PREFIX.length()), "ROLE_ADMIN");
         UserDtoResponse expected = userDtoResponse;
         when(userService.loadUserByUsername(SUBJECT))
                 .thenReturn(userDetails);
-        when(userService.update(userId,userDtoRequest,authenticatedUser)).thenReturn(expected);
+        when(userService.update(userId, userDtoRequest, authenticatedUser)).thenReturn(expected);
 
         String actual = mockMvc.perform(put("/users/{userId}", userId)
                         .contentType(APPLICATION_JSON_VALUE)
-                        .header(AUTHORIZATION,token)
+                        .header(AUTHORIZATION, token)
                         .content(objectMapper.writeValueAsString(userDtoRequest)))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
 
-        assertEquals(objectMapper.writeValueAsString(expected),actual);
-        verify(userService).update(userId,userDtoRequest,authenticatedUser);
+        assertEquals(objectMapper.writeValueAsString(expected), actual);
+        verify(userService).update(userId, userDtoRequest, authenticatedUser);
     }
 
     @Test
@@ -257,44 +261,44 @@ class UserControllerTest {
     void updateFailIdConstraint() {
 
         String expectedMessage = "{general.validation.validId.positive}";
-        userId=-1L;
+        userId = -1L;
         String token = getJwtToken();
-        authenticatedUser = new AuthenticatedUser(SUBJECT,token.substring(TOKEN_PREFIX.length()),"ROLE_ADMIN");
+        authenticatedUser = new AuthenticatedUser(SUBJECT, token.substring(TOKEN_PREFIX.length()), "ROLE_ADMIN");
 
         when(userService.loadUserByUsername(SUBJECT))
                 .thenReturn(userDetails);
 
         mockMvc.perform(put("/users/{userId}", userId)
                         .contentType(APPLICATION_JSON_VALUE)
-                        .header(AUTHORIZATION,token)
+                        .header(AUTHORIZATION, token)
                         .content(objectMapper.writeValueAsString(userDtoRequest)))
                 .andExpect(status().isBadRequest())
                 .andExpect(result -> assertTrue(result.getResolvedException() instanceof ConstraintViolationException))
                 .andExpect(result -> assertTrue(result.getResolvedException().getMessage().contains(expectedMessage)));
 
-        verify(userService,never()).update(userId,userDtoRequest,authenticatedUser);
+        verify(userService, never()).update(userId, userDtoRequest, authenticatedUser);
     }
 
     @Test
     @SneakyThrows
     void updateFailRequestBodyConstraint() {
-        String expectedMessage ="{user.validation.email}";
+        String expectedMessage = "{user.validation.email}";
         userDtoRequest.setEmail("sa");
         String token = getJwtToken();
-        authenticatedUser = new AuthenticatedUser(SUBJECT,token.substring(TOKEN_PREFIX.length()),"ROLE_ADMIN");
+        authenticatedUser = new AuthenticatedUser(SUBJECT, token.substring(TOKEN_PREFIX.length()), "ROLE_ADMIN");
 
         when(userService.loadUserByUsername(SUBJECT))
                 .thenReturn(userDetails);
 
         mockMvc.perform(put("/users/{userId}", userId)
                         .contentType(APPLICATION_JSON_VALUE)
-                        .header(AUTHORIZATION,token)
+                        .header(AUTHORIZATION, token)
                         .content(objectMapper.writeValueAsString(userDtoRequest)))
                 .andExpect(status().isBadRequest())
                 .andExpect(result -> assertTrue(result.getResolvedException() instanceof MethodArgumentNotValidException))
                 .andExpect(result -> assertTrue(result.getResolvedException().getMessage().contains(expectedMessage)));
 
-        verify(userService,never()).update(userId,userDtoRequest,authenticatedUser);
+        verify(userService, never()).update(userId, userDtoRequest, authenticatedUser);
     }
 
 
@@ -307,8 +311,8 @@ class UserControllerTest {
                         .content(objectMapper.writeValueAsString(userDtoRequest)))
                 .andExpect(status().isUnauthorized());
 
-        verify(userService,never()).update(userId,userDtoRequest,authenticatedUser);
-        verify(userService,never()).loadUserByUsername(SUBJECT);
+        verify(userService, never()).update(userId, userDtoRequest, authenticatedUser);
+        verify(userService, never()).loadUserByUsername(SUBJECT);
     }
 
     @Test
@@ -316,15 +320,15 @@ class UserControllerTest {
     void deleteById() {
 
         String token = getJwtToken();
-        authenticatedUser = new AuthenticatedUser(SUBJECT,token.substring(TOKEN_PREFIX.length()),"ROLE_ADMIN");
+        authenticatedUser = new AuthenticatedUser(SUBJECT, token.substring(TOKEN_PREFIX.length()), "ROLE_ADMIN");
         when(userService.loadUserByUsername(SUBJECT))
                 .thenReturn(userDetails);
 
-       mockMvc.perform(delete("/users/{userId}", userId)
+        mockMvc.perform(delete("/users/{userId}", userId)
                         .contentType(APPLICATION_JSON_VALUE)
-                        .header(AUTHORIZATION,token))
+                        .header(AUTHORIZATION, token))
                 .andExpect(status().isOk());
 
-        verify(userService).deleteById(userId,authenticatedUser);
+        verify(userService).deleteById(userId, authenticatedUser);
     }
-    }
+}

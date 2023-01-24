@@ -1,6 +1,5 @@
 package com.example.blogservice.handling;
 
-import com.auth0.jwt.exceptions.JWTDecodeException;
 import com.example.blogservice.exception.NotValidCredentialsException;
 import com.example.blogservice.exception.NotValidTokenException;
 import com.example.blogservice.exception.ResourceNotFoundException;
@@ -24,16 +23,16 @@ public class BlogApiExceptionHandler {
     @ExceptionHandler(value = ResourceNotFoundException.class)
     @ResponseStatus(NOT_FOUND)
     public BlogApiErrorResponse resourceNotFoundExceptionHandler(HttpServletRequest request,
-                                                                 ResourceNotFoundException exception){
+                                                                 ResourceNotFoundException exception) {
         log.error("The {}. There is no object in database : {}.Url of request : {}",
-                exception.getClass().getSimpleName(), exception.getMessage(),request.getRequestURL());
+                exception.getClass().getSimpleName(), exception.getMessage(), request.getRequestURL());
         return new BlogApiErrorResponse(exception.getMessage());
     }
 
     @ExceptionHandler(value = MethodArgumentNotValidException.class)
     @ResponseStatus(BAD_REQUEST)
     public ValidationErrorResponse methodArgumentNotValidExceptionHandler(HttpServletRequest request,
-                                                                   MethodArgumentNotValidException exception){
+                                                                          MethodArgumentNotValidException exception) {
 
         ValidationErrorResponse validationErrorResponse = new ValidationErrorResponse(
                 exception.getBindingResult().getAllErrors().stream()
@@ -43,21 +42,21 @@ public class BlogApiExceptionHandler {
         );
 
         log.warn("The {}. Validation messages : {} .Url of request : {}",
-                exception.getClass().getSimpleName(),validationErrorResponse.getMessage(), request.getRequestURL());
+                exception.getClass().getSimpleName(), validationErrorResponse.getMessage(), request.getRequestURL());
         return validationErrorResponse;
     }
 
     @ExceptionHandler(value = ConstraintViolationException.class)
     @ResponseStatus(BAD_REQUEST)
     public ValidationErrorResponse constraintViolationExceptionHandler(HttpServletRequest request,
-                                                                       ConstraintViolationException exception){
+                                                                       ConstraintViolationException exception) {
         ValidationErrorResponse validationErrorResponse = new ValidationErrorResponse(
                 exception.getConstraintViolations().stream()
-                        .map(violation-> new ValidationMessage(violation.getPropertyPath().toString(),violation.getMessage()))
+                        .map(violation -> new ValidationMessage(violation.getPropertyPath().toString(), violation.getMessage()))
                         .collect(Collectors.toList())
         );
         log.warn("The {}. Validation messages : {} .Url of request : {}",
-                exception.getClass().getSimpleName(),validationErrorResponse.getMessage(), request.getRequestURL());
+                exception.getClass().getSimpleName(), validationErrorResponse.getMessage(), request.getRequestURL());
 
         return validationErrorResponse;
     }
@@ -65,18 +64,18 @@ public class BlogApiExceptionHandler {
     @ExceptionHandler(value = NotValidCredentialsException.class)
     @ResponseStatus(FORBIDDEN)
     public BlogApiErrorResponse notValidCredentialsExceptionHandler(HttpServletRequest request
-            ,NotValidCredentialsException exception){
+            , NotValidCredentialsException exception) {
         log.error("The {}. There is no object in database : {}.Url of request : {}",
-                exception.getClass().getSimpleName(), exception.getMessage(),request.getRequestURL());
+                exception.getClass().getSimpleName(), exception.getMessage(), request.getRequestURL());
         return new BlogApiErrorResponse(exception.getMessage());
     }
 
     @ExceptionHandler(value = NotValidTokenException.class)
     @ResponseStatus(FORBIDDEN)
     public BlogApiErrorResponse notValidTokenExceptionHandler(HttpServletRequest request
-            ,NotValidCredentialsException exception){
+            , NotValidCredentialsException exception) {
         log.error("The {}. There is no object in database : {}.Url of request : {}",
-                exception.getClass().getSimpleName(), exception.getMessage(),request.getRequestURL());
+                exception.getClass().getSimpleName(), exception.getMessage(), request.getRequestURL());
         return new BlogApiErrorResponse(exception.getMessage());
     }
 

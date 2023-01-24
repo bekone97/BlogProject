@@ -34,18 +34,3 @@ jwt:
 init:
   users:
     location: ${INIT_USERS_LOCATION:infastructure/init/InitUser.json}
-
-#    -
-#      id: 1
-#      username: "admin"
-#      password: "password"
-#      email: "myachinenergo@mail.ru"
-#      dateOfBirth: 1997-06-25
-#      role: ROLE_ADMIN
-#    -
-#      id: 2
-#      username: "secondUser"
-#      password: "secondPassword"
-#      email: "bekone97@mail.ru"
-#      dateOfBirth: 1997-05-12
-#      role: ROLE_ADMIN

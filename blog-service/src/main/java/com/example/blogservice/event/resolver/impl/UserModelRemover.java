@@ -27,7 +27,7 @@ public class UserModelRemover implements ModelRemover {
     @Transactional
     public void prepareModelRemoving(Object model) {
         log.info("Delete all user's posts and comments  with user id : {}", model);
-        User user =(User) model;
+        User user = (User) model;
         postService.deleteAllByUser(user);
         commentService.deleteAllByUser(user);
     }

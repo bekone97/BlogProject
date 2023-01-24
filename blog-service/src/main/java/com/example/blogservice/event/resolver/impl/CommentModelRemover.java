@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 public class CommentModelRemover implements ModelRemover {
     private final PostService postService;
+
     @Override
     public ModelType getModelType() {
         return ModelType.COMMENT;

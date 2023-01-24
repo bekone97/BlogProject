@@ -19,7 +19,7 @@ public class TokenController {
 
     @PostMapping("/refresh")
     @ResponseStatus(HttpStatus.CREATED)
-    public Map<String,String> refreshToken(@RequestHeader(AUTHORIZATION) String authorizationHeader){
+    public Map<String, String> refreshToken(@RequestHeader(AUTHORIZATION) String authorizationHeader) {
         return jwtService.createTokensByRefreshTokenHeader(authorizationHeader);
     }
 }

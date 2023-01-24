@@ -18,7 +18,7 @@ public class UserMapperImpl implements UserMapper {
 
     @Override
     public UserDtoResponse mapToUserDtoResponse(User user) {
-        return modelMapper.map(user,UserDtoResponse.class);
+        return modelMapper.map(user, UserDtoResponse.class);
     }
 
     @Override
@@ -32,16 +32,16 @@ public class UserMapperImpl implements UserMapper {
 
     @Override
     public User mapToUser(UserDtoResponse userDtoResponse) {
-        return modelMapper.map(userDtoResponse,User.class);
+        return modelMapper.map(userDtoResponse, User.class);
     }
 
     @Override
     public User mapToUser(UserDto userDto) {
-        return modelMapper.map(userDto,User.class);
+        return modelMapper.map(userDto, User.class);
     }
 
     @Override
     public UserDto mapToUserDto(User user) {
-        return modelMapper.map(user,UserDto.class);
+        return modelMapper.map(user, UserDto.class);
     }
 }

@@ -8,11 +8,12 @@ import org.testcontainers.junit.jupiter.Container;
 public class DatabaseContainerInitializer {
 
     @Container
-    public static final GenericContainer mongo=new GenericContainer("mongo:6.0.3")
+    public static final GenericContainer mongo = new GenericContainer("mongo:6.0.3")
             .withExposedPorts(27017)
             .waitingFor(Wait.forLogMessage(".*Waiting for connections.*\\n", 1))
-            .withEnv("MONGO_INITDB_DATABASE","db")
-            .withReuse(true);;
+            .withEnv("MONGO_INITDB_DATABASE", "db")
+            .withReuse(true);
+    ;
 
 
     static {

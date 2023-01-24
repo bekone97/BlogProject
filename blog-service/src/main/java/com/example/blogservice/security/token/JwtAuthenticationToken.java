@@ -11,8 +11,9 @@ import java.security.Principal;
 public class JwtAuthenticationToken extends UsernamePasswordAuthenticationToken {
     private final String token;
     private Principal principal;
+
     public JwtAuthenticationToken(String token) {
         super(null, null);
-        this.token=token;
+        this.token = token;
     }
 }

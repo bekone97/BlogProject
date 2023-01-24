@@ -9,5 +9,5 @@ public interface JWTService {
 
     String getUsernameByTokenHeader(String header);
 
-    Map<String,String> createTokensByRefreshTokenHeader(String header);
+    Map<String, String> createTokensByRefreshTokenHeader(String header);
 }

@@ -14,11 +14,11 @@ import java.util.List;
 @Builder
 public class PostDtoResponse {
 
-    @Schema(description = "Id of post which applied application",example = "1",implementation = Long.class)
+    @Schema(description = "Id of post which applied application", example = "1", implementation = Long.class)
     private Long id;
-    @Schema(description = "Some text are written in this post",implementation = String.class)
+    @Schema(description = "Some text are written in this post", implementation = String.class)
     private String content;
-    @Schema(description = "User who has written this post",implementation = UserDtoResponse.class)
+    @Schema(description = "User who has written this post", implementation = UserDtoResponse.class)
     private UserDtoResponse userDtoResponse;
 
     @Schema(description = "Some file in post")
@@ -26,6 +26,6 @@ public class PostDtoResponse {
 
     private String title;
 
-    @Schema(description = "List of comments which are in this post",implementation = CommentDtoResponse.class)
+    @Schema(description = "List of comments which are in this post", implementation = CommentDtoResponse.class)
     private List<CommentDtoResponse> comments;
 }

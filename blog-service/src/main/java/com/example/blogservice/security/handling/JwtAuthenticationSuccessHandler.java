@@ -12,7 +12,7 @@ public class JwtAuthenticationSuccessHandler implements AuthenticationSuccessHan
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request,
                                         HttpServletResponse response,
-                                        Authentication authentication){
+                                        Authentication authentication) {
 //        Do nothing
     }
 }

@@ -7,8 +7,8 @@ import java.util.List;
 
 @Data
 @NoArgsConstructor
-public class ValidationErrorResponse extends BlogApiErrorResponse{
-        private List<ValidationMessage> validationMessages;
+public class ValidationErrorResponse extends BlogApiErrorResponse {
+    private List<ValidationMessage> validationMessages;
 
     public ValidationErrorResponse(List<ValidationMessage> validationMessages) {
         super("Validation error");

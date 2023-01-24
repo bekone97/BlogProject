@@ -14,15 +14,15 @@ import java.time.LocalDate;
 @Builder
 public class UserDtoResponse {
 
-    @Schema(description = "User's id, which applied application",example = "1",implementation = Long.class)
+    @Schema(description = "User's id, which applied application", example = "1", implementation = Long.class)
     private Long id;
 
-    @Schema(description = "User's username",example = "Arteminio",implementation = String.class)
+    @Schema(description = "User's username", example = "Arteminio", implementation = String.class)
     private String username;
 
-    @Schema(description = "User's email", example = "amdsldmal@mail.ru",implementation = String.class)
+    @Schema(description = "User's email", example = "amdsldmal@mail.ru", implementation = String.class)
     private String email;
 
-    @Schema(description = "User's date of birth",example = "2000-01-18",pattern = "yyyy-MM-dd",implementation = LocalDate.class)
+    @Schema(description = "User's date of birth", example = "2000-01-18", pattern = "yyyy-MM-dd", implementation = LocalDate.class)
     private LocalDate dateOfBirth;
 }

@@ -15,7 +15,6 @@ import java.net.URI;
 
 import static com.example.bddservice.cucumber.utils.TestUtil.createHttpHeaders;
 import static com.example.bddservice.cucumber.utils.UrlUtil.SERVER_URL;
-import static com.example.bddservice.cucumber.utils.UrlUtil.USERS_BY_ID;
 
 @Component
 @ScenarioScope
@@ -31,8 +30,8 @@ public class HttpClient {
 
     @SneakyThrows
     public void post(String endpoint, String value, String password, Type type) {
-        response= restTemplate.exchange(RequestEntity
-                        .post(new URI(SERVER_URL + port + endpoint+"?password="+password))
+        response = restTemplate.exchange(RequestEntity
+                        .post(new URI(SERVER_URL + port + endpoint + "?password=" + password))
                         .contentType(MediaType.APPLICATION_JSON)
                         .body(value, type),
                 String.class);
@@ -40,8 +39,8 @@ public class HttpClient {
 
     @SneakyThrows
     public void get(String endpoint) {
-        response= restTemplate.exchange(RequestEntity
-                        .get(new URI(SERVER_URL + port + endpoint+"?page=0&size=2"))
+        response = restTemplate.exchange(RequestEntity
+                        .get(new URI(SERVER_URL + port + endpoint + "?page=0&size=2"))
                         .headers(createHttpHeaders())
                         .build(),
                 String.class);
@@ -49,7 +48,7 @@ public class HttpClient {
 
     @SneakyThrows
     public void getById(String endpoint) {
-        response= restTemplate.exchange(RequestEntity
+        response = restTemplate.exchange(RequestEntity
                         .get(new URI(SERVER_URL + port + endpoint))
                         .headers(createHttpHeaders())
                         .build(),

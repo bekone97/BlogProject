@@ -8,7 +8,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.UserDetailsService;
 
-public interface UserService extends UserDetailsService{
+public interface UserService extends UserDetailsService {
 
     UserDtoResponse getById(Long id);
 
@@ -27,6 +27,6 @@ public interface UserService extends UserDetailsService{
 
     UserDto getUserByUsername(String username);
 
-    UserDtoResponse changePasswordByUserId(Long id, String password,  AuthenticatedUser authenticatedUser);
+    UserDtoResponse changePasswordByUserId(Long id, String password, AuthenticatedUser authenticatedUser);
 
 }

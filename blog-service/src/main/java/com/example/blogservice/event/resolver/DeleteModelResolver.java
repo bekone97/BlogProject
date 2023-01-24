@@ -16,11 +16,11 @@ public class DeleteModelResolver {
 
     @Autowired
     public DeleteModelResolver(List<ModelRemover> modelRemovers) {
-        this.modelTypeRemoverContexts= modelRemovers.stream()
+        this.modelTypeRemoverContexts = modelRemovers.stream()
                 .collect(Collectors.toMap(ModelRemover::getModelType, Function.identity()));
     }
 
-    public void prepareModelRemoving(ModelDeletedEvent modelDeletedEvent){
+    public void prepareModelRemoving(ModelDeletedEvent modelDeletedEvent) {
         modelTypeRemoverContexts.get(modelDeletedEvent.getModelType())
                 .prepareModelRemoving(modelDeletedEvent.getModel());
     }

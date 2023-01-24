@@ -6,7 +6,6 @@ import com.example.blogservice.handling.BlogApiErrorResponse;
 import com.example.blogservice.handling.ValidationErrorResponse;
 import com.example.blogservice.security.user.AuthenticatedUser;
 import com.example.blogservice.service.UserService;
-import com.example.blogservice.utils.ConstantUtil;
 import com.example.blogservice.validator.ValidId;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -40,7 +39,7 @@ public class UserController {
     @Operation(summary = "Returns all users")
     @ApiResponses({
             @ApiResponse(responseCode = RESPONSE_CODE_OK, description = RESPONSE_DESCRIPTION_OK,
-                    content = {@Content(mediaType =APPLICATION_JSON,
+                    content = {@Content(mediaType = APPLICATION_JSON,
                             schema = @Schema(implementation = UserDtoResponse.class))}),
             @ApiResponse(responseCode = RESPONSE_CODE_BAD_REQUEST, description = RESPONSE_DESCRIPTION_BAD_REQUEST,
                     content = {@Content(mediaType = APPLICATION_JSON,
@@ -55,10 +54,10 @@ public class UserController {
 
     @Operation(summary = "Returns a user by userId")
     @ApiResponses({
-            @ApiResponse(responseCode =RESPONSE_CODE_OK, description = RESPONSE_DESCRIPTION_OK,
+            @ApiResponse(responseCode = RESPONSE_CODE_OK, description = RESPONSE_DESCRIPTION_OK,
                     content = {@Content(mediaType = APPLICATION_JSON,
                             schema = @Schema(implementation = UserDtoResponse.class))}),
-            @ApiResponse(responseCode = RESPONSE_CODE_BAD_REQUEST, description =RESPONSE_DESCRIPTION_BAD_REQUEST,
+            @ApiResponse(responseCode = RESPONSE_CODE_BAD_REQUEST, description = RESPONSE_DESCRIPTION_BAD_REQUEST,
                     content = {@Content(mediaType = APPLICATION_JSON,
                             schema = @Schema(implementation = ValidationErrorResponse.class))}),
             @ApiResponse(responseCode = RESPONSE_CODE_NOT_FOUNDED, description = RESPONSE_DESCRIPTION_NOT_FOUNDED,
@@ -78,7 +77,7 @@ public class UserController {
             @ApiResponse(responseCode = RESPONSE_CODE_CREATED, description = RESPONSE_DESCRIPTION_CREATED,
                     content = {@Content(mediaType = APPLICATION_JSON,
                             schema = @Schema(implementation = UserDtoResponse.class))}),
-            @ApiResponse(responseCode = RESPONSE_CODE_BAD_REQUEST, description =RESPONSE_DESCRIPTION_BAD_REQUEST,
+            @ApiResponse(responseCode = RESPONSE_CODE_BAD_REQUEST, description = RESPONSE_DESCRIPTION_BAD_REQUEST,
                     content = {@Content(mediaType = APPLICATION_JSON,
                             schema = @Schema(implementation = ValidationErrorResponse.class))})
     })
@@ -90,7 +89,7 @@ public class UserController {
                                 @RequestParam @Size(min = 6, message = "User password can't be less than 6 symbols")
                                 @NotBlank(message = "User's password can't be empty") String password) {
         log.info("Save user by : {}", userDtoRequest);
-        return userService.save(userDtoRequest,password );
+        return userService.save(userDtoRequest, password);
     }
 
     @Operation(summary = "Update an existing user")
@@ -102,7 +101,7 @@ public class UserController {
                     content = {@Content(mediaType = APPLICATION_JSON,
                             schema = @Schema(implementation = ValidationErrorResponse.class))}),
             @ApiResponse(responseCode = RESPONSE_CODE_NOT_FOUNDED, description = RESPONSE_DESCRIPTION_NOT_FOUNDED,
-                    content = {@Content(mediaType =APPLICATION_JSON,
+                    content = {@Content(mediaType = APPLICATION_JSON,
                             schema = @Schema(implementation = BlogApiErrorResponse.class))})
     })
     @PutMapping("/{userId}")
@@ -114,7 +113,7 @@ public class UserController {
                                   @Valid @RequestBody UserDtoRequest userDtoRequest,
                                   @AuthenticationPrincipal AuthenticatedUser authenticatedUser) {
         log.info("Update user with id : {} by : {}", userId, userDtoRequest);
-        return userService.update(userId, userDtoRequest,authenticatedUser);
+        return userService.update(userId, userDtoRequest, authenticatedUser);
     }
 
 

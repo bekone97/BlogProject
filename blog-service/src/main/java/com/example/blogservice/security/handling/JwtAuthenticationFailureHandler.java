@@ -24,13 +24,13 @@ public class JwtAuthenticationFailureHandler implements AuthenticationFailureHan
     @Override
     public void onAuthenticationFailure(HttpServletRequest request,
                                         HttpServletResponse response,
-                                        AuthenticationException exception) throws IOException{
-      log.error("Rejected access : {} for url : {}",exception.getMessage(),request.getRequestURL());
-      final BlogApiErrorResponse blogApiErrorResponse = new BlogApiErrorResponse(exception.getMessage());
+                                        AuthenticationException exception) throws IOException {
+        log.error("Rejected access : {} for url : {}", exception.getMessage(), request.getRequestURL());
+        final BlogApiErrorResponse blogApiErrorResponse = new BlogApiErrorResponse(exception.getMessage());
 
-      response.setContentType(APPLICATION_JSON_VALUE);
-      response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-      response.getOutputStream().println(objectMapper.writeValueAsString(blogApiErrorResponse));
-      response.getOutputStream().flush();
+        response.setContentType(APPLICATION_JSON_VALUE);
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        response.getOutputStream().println(objectMapper.writeValueAsString(blogApiErrorResponse));
+        response.getOutputStream().flush();
     }
 }

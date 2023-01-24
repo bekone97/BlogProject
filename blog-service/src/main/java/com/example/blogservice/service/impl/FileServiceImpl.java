@@ -31,9 +31,9 @@ public class FileServiceImpl implements FileService {
     @Transactional
     public ObjectId uploadFile(MultipartFile file) {
         log.debug("Upload file with file name : {} , contentType: {}, size : {}",
-                file.getOriginalFilename(),file.getContentType(),file.getSize());
+                file.getOriginalFilename(), file.getContentType(), file.getSize());
         DBObject data = new BasicDBObject();
-        data.put("filesize",file.getSize());
+        data.put("filesize", file.getSize());
 
         ObjectId store = gridFsTemplate.store(file.getInputStream(), file.getOriginalFilename(),
                 file.getContentType(), data);
@@ -44,7 +44,7 @@ public class FileServiceImpl implements FileService {
     @Override
     @SneakyThrows
     public LoadFile downloadFile(ObjectId id) {
-        log.debug("Download file with objectId : {}",id);
+        log.debug("Download file with objectId : {}", id);
         GridFSFile gridFSFile = gridFsTemplate.findOne(new Query(Criteria.where("_id").is(id)));
         return LoadFile.builder()
                 .fileName(gridFSFile.getFilename())
@@ -57,7 +57,7 @@ public class FileServiceImpl implements FileService {
     @Override
     @Transactional
     public void deleteFile(ObjectId objectId) {
-        log.debug("Delete file with object id : {}",objectId);
+        log.debug("Delete file with object id : {}", objectId);
         gridFsTemplate.delete(new Query(Criteria.where("_id").is(objectId)));
     }
 }

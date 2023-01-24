@@ -73,9 +73,10 @@ class PostServiceUnitTest {
     ModelCreatedEvent modelCreatedEvent;
     ModelUpdatedEvent modelUpdatedEvent;
     ModelDeletedEvent modelDeletedEvent;
+
     @BeforeEach
-    public void setUp(){
-        user=User.builder()
+    public void setUp() {
+        user = User.builder()
                 .username("Myachin")
                 .password("Artsiom")
                 .email("myachinenergo@mail.ru")
@@ -83,18 +84,18 @@ class PostServiceUnitTest {
                 .dateOfBirth(LocalDate.now().minusYears(12))
                 .role(Role.ROLE_ADMIN)
                 .build();
-        userDtoResponse = modelMapper.map(user,UserDtoResponse.class);
+        userDtoResponse = modelMapper.map(user, UserDtoResponse.class);
         authenticatedUser = new AuthenticatedUser("Myachin",
                 "someToken", Role.ROLE_ADMIN.name());
 
-        comment= Comment.builder()
+        comment = Comment.builder()
                 .id(1L)
                 .user(user)
                 .text("someText")
                 .build();
-        commentDtoRequest=modelMapper.map(comment,CommentDtoRequest.class);
+        commentDtoRequest = modelMapper.map(comment, CommentDtoRequest.class);
         commentDtoRequest.setUserId(1L);
-        commentDtoResponse=modelMapper.map(comment,CommentDtoResponse.class);
+        commentDtoResponse = modelMapper.map(comment, CommentDtoResponse.class);
         post = Post.builder()
                 .id(1L)
                 .content("someContent")
@@ -102,11 +103,11 @@ class PostServiceUnitTest {
                 .user(user)
                 .comments(new ArrayList<>())
                 .build();
-        postDtoRequest = modelMapper.map(post,PostDtoRequest.class);
+        postDtoRequest = modelMapper.map(post, PostDtoRequest.class);
         postDtoRequest.setUserId(1L);
-        postDtoResponse=modelMapper.map(post,PostDtoResponse.class);
+        postDtoResponse = modelMapper.map(post, PostDtoResponse.class);
         postDtoResponse.setUserDtoResponse(userDtoResponse);
-        modelCreatedEvent= ModelCreatedEvent.builder()
+        modelCreatedEvent = ModelCreatedEvent.builder()
                 .modelName(Post.class.getName())
                 .modelId(1L)
                 .build();
@@ -121,17 +122,17 @@ class PostServiceUnitTest {
     }
 
     @AfterEach
-    public void tearDown(){
+    public void tearDown() {
         user = null;
-        comment=null;
-        commentDtoRequest=null;
-        commentDtoResponse=null;
-        post=null;
+        comment = null;
+        commentDtoRequest = null;
+        commentDtoResponse = null;
+        post = null;
         postDtoRequest = null;
         postDtoResponse = null;
-        modelCreatedEvent=null;
-        modelDeletedEvent=null;
-        modelUpdatedEvent=null;
+        modelCreatedEvent = null;
+        modelDeletedEvent = null;
+        modelUpdatedEvent = null;
     }
 
     @Test
@@ -142,10 +143,11 @@ class PostServiceUnitTest {
 
         PostDtoResponse actual = postService.getById(1L);
 
-        assertEquals(expected,actual);
+        assertEquals(expected, actual);
         verify(postRepository).findById(1L);
         verify(postMapper).mapToPostDtoResponse(post);
     }
+
     @Test
     void getByIdFail() {
         String expectedMessage = "Post wasn't found by id=1";
@@ -156,7 +158,7 @@ class PostServiceUnitTest {
 
         assertTrue(actual.getMessage().contains(expectedMessage));
         verify(postRepository).findById(1L);
-        verify(postMapper,never()).mapToPostDtoResponse(post);
+        verify(postMapper, never()).mapToPostDtoResponse(post);
     }
 
     @Test
@@ -164,15 +166,15 @@ class PostServiceUnitTest {
         postDtoResponse.setUserDtoResponse(userDtoResponse);
         List<Post> posts = List.of(post);
         Pageable pageable = PageRequest.of(1, 3, Sort.by("id"));
-        Page<Post> page = new PageImpl<>(posts,pageable,1);
-        Page<PostDtoResponse> expected = new PageImpl<>(List.of(postDtoResponse),pageable,1);
+        Page<Post> page = new PageImpl<>(posts, pageable, 1);
+        Page<PostDtoResponse> expected = new PageImpl<>(List.of(postDtoResponse), pageable, 1);
 
         when(postRepository.findAll(pageable)).thenReturn(page);
         when(postMapper.mapToPostDtoResponse(post)).thenReturn(postDtoResponse);
 
         Page<PostDtoResponse> actual = postService.findAll(pageable);
 
-        assertEquals(expected.getContent(),actual.getContent());
+        assertEquals(expected.getContent(), actual.getContent());
         verify(postRepository).findAll(pageable);
         verify(postMapper).mapToPostDtoResponse(post);
     }
@@ -181,17 +183,17 @@ class PostServiceUnitTest {
     void save() {
         PostDtoResponse expected = postDtoResponse;
         when(userService.getById(1L)).thenReturn(userDtoResponse);
-        when(postMapper.mapToPost(1L,postDtoRequest,userDtoResponse)).thenReturn(post);
+        when(postMapper.mapToPost(1L, postDtoRequest, userDtoResponse)).thenReturn(post);
         when(sequenceGeneratorService.generateSequence(Post.SEQUENCE_NAME)).thenReturn(1L);
         when(postRepository.save(post)).thenReturn(post);
         when(postMapper.mapToPostDtoResponse(post)).thenReturn(postDtoResponse);
 
 
-        PostDtoResponse actual = postService.save(postDtoRequest,authenticatedUser);
+        PostDtoResponse actual = postService.save(postDtoRequest, authenticatedUser);
 
-        assertEquals(expected,actual);
+        assertEquals(expected, actual);
         verify(userService).getById(1L);
-        verify(postMapper).mapToPost(1L,postDtoRequest,userDtoResponse);
+        verify(postMapper).mapToPost(1L, postDtoRequest, userDtoResponse);
         verify(sequenceGeneratorService).generateSequence(Post.SEQUENCE_NAME);
         verify(postRepository).save(post);
         verify(postMapper).mapToPostDtoResponse(post);
@@ -200,33 +202,33 @@ class PostServiceUnitTest {
     @Test
     void saveFail() {
         String expectedMessage = "User must be authenticated to save post";
-        authenticatedUser=null;
+        authenticatedUser = null;
 
         NotValidCredentialsException actual = assertThrows(NotValidCredentialsException.class,
                 () -> postService.save(postDtoRequest, authenticatedUser));
 
         assertTrue(actual.getMessage().contains(expectedMessage));
-        verify(userService,never()).getById(1L);
-        verify(postMapper,never()).mapToPost(1L,postDtoRequest,userDtoResponse);
-        verify(sequenceGeneratorService,never()).generateSequence(Post.SEQUENCE_NAME);
-        verify(postRepository,never()).save(post);
-        verify(postMapper,never()).mapToPostDtoResponse(post);
+        verify(userService, never()).getById(1L);
+        verify(postMapper, never()).mapToPost(1L, postDtoRequest, userDtoResponse);
+        verify(sequenceGeneratorService, never()).generateSequence(Post.SEQUENCE_NAME);
+        verify(postRepository, never()).save(post);
+        verify(postMapper, never()).mapToPostDtoResponse(post);
     }
 
     @Test
     void update() {
         PostDtoResponse expect = postDtoResponse;
         when(postRepository.findById(1L)).thenReturn(Optional.of(post));
-        when(postMapper.mapToPost(1L,postDtoRequest,userDtoResponse,post.getComments())).thenReturn(post);
+        when(postMapper.mapToPost(1L, postDtoRequest, userDtoResponse, post.getComments())).thenReturn(post);
         when(postRepository.save(post)).thenReturn(post);
         when(postMapper.mapToPostDtoResponse(post)).thenReturn(postDtoResponse);
         when(userService.getById(1L)).thenReturn(userDtoResponse);
 
-        PostDtoResponse actual = postService.update(1L,postDtoRequest,authenticatedUser);
+        PostDtoResponse actual = postService.update(1L, postDtoRequest, authenticatedUser);
 
-        assertEquals(expect,actual);
+        assertEquals(expect, actual);
         verify(postRepository).findById(1L);
-        verify(postMapper).mapToPost(1L,postDtoRequest,userDtoResponse,post.getComments());
+        verify(postMapper).mapToPost(1L, postDtoRequest, userDtoResponse, post.getComments());
         verify(postMapper).mapToPostDtoResponse(post);
         verify(postRepository).save(post);
         verify(userService).getById(1L);
@@ -245,17 +247,17 @@ class PostServiceUnitTest {
         assertTrue(exception.getMessage().contains(expectedMessage));
 
         verify(postRepository).findById(1L);
-        verify(postMapper,never()).mapToPost(1L,postDtoRequest,userDtoResponse,post.getComments());
-        verify(postMapper,never()).mapToPostDtoResponse(post);
-        verify(postRepository,never()).save(post);
+        verify(postMapper, never()).mapToPost(1L, postDtoRequest, userDtoResponse, post.getComments());
+        verify(postMapper, never()).mapToPostDtoResponse(post);
+        verify(postRepository, never()).save(post);
         verify(userService).getById(1L);
-        verify(applicationEventPublisher,never()).publishEvent(modelUpdatedEvent);
+        verify(applicationEventPublisher, never()).publishEvent(modelUpdatedEvent);
     }
 
     @Test
     void updateFailCredentials() {
         String expectedMessage = "User has no enough permissions";
-        authenticatedUser=null;
+        authenticatedUser = null;
         when(userService.getById(1L)).thenReturn(userDtoResponse);
 
         NotValidCredentialsException exception = assertThrows(NotValidCredentialsException.class,
@@ -263,12 +265,12 @@ class PostServiceUnitTest {
 
         assertTrue(exception.getMessage().contains(expectedMessage));
 
-        verify(postRepository,never()).findById(1L);
-        verify(postMapper,never()).mapToPost(1L,postDtoRequest,userDtoResponse,post.getComments());
-        verify(postMapper,never()).mapToPostDtoResponse(post);
-        verify(postRepository,never()).save(post);
+        verify(postRepository, never()).findById(1L);
+        verify(postMapper, never()).mapToPost(1L, postDtoRequest, userDtoResponse, post.getComments());
+        verify(postMapper, never()).mapToPostDtoResponse(post);
+        verify(postRepository, never()).save(post);
         verify(userService).getById(1L);
-        verify(applicationEventPublisher,never()).publishEvent(modelUpdatedEvent);
+        verify(applicationEventPublisher, never()).publishEvent(modelUpdatedEvent);
     }
 
     @Test
@@ -276,7 +278,7 @@ class PostServiceUnitTest {
         when(postRepository.findById(1L)).thenReturn(Optional.of(post));
         when(postMapper.mapToPostDtoResponse(post)).thenReturn(postDtoResponse);
 
-        postService.deleteById(1L,authenticatedUser);
+        postService.deleteById(1L, authenticatedUser);
 
         verify(postRepository).findById(1L);
         verify(applicationEventPublisher).publishEvent(modelDeletedEvent);
@@ -293,13 +295,13 @@ class PostServiceUnitTest {
 
         assertTrue(actual.getMessage().contains(expectedMessage));
         verify(postRepository).findById(1L);
-        verify(applicationEventPublisher,never()).publishEvent(modelDeletedEvent);
-        verify(postRepository,never()).delete(post);
+        verify(applicationEventPublisher, never()).publishEvent(modelDeletedEvent);
+        verify(postRepository, never()).delete(post);
     }
 
     @Test
     void deleteByIdFailCredentials() {
-        authenticatedUser=null;
+        authenticatedUser = null;
         String expectedMessage = "User has no enough permissions";
         when(postRepository.findById(1L)).thenReturn(Optional.ofNullable(post));
 
@@ -308,8 +310,8 @@ class PostServiceUnitTest {
 
         assertTrue(actual.getMessage().contains(expectedMessage));
         verify(postRepository).findById(1L);
-        verify(applicationEventPublisher,never()).publishEvent(modelDeletedEvent);
-        verify(postRepository,never()).delete(post);
+        verify(applicationEventPublisher, never()).publishEvent(modelDeletedEvent);
+        verify(postRepository, never()).delete(post);
     }
 
     @Test
@@ -321,7 +323,7 @@ class PostServiceUnitTest {
 
         List<PostDtoResponse> actual = postService.findAllByUserId(1L);
 
-        assertEquals(expected,actual);
+        assertEquals(expected, actual);
         verify(userService).existsById(1L);
         verify(postRepository).findAllByUserId(1L);
         verify(postMapper).mapToPostDtoResponse(post);
@@ -338,8 +340,8 @@ class PostServiceUnitTest {
 
         assertTrue(actual.getMessage().contains(expectedMessage));
         verify(userService).existsById(1L);
-        verify(postRepository,never()).findAllByUserId(1L);
-        verify(postMapper,never()).mapToPostDtoResponse(post);
+        verify(postRepository, never()).findAllByUserId(1L);
+        verify(postMapper, never()).mapToPostDtoResponse(post);
     }
 
 
@@ -356,7 +358,7 @@ class PostServiceUnitTest {
         when(postRepository.findById(1L)).thenReturn(Optional.of(post));
         when(postRepository.save(changedPost)).thenReturn(changedPost);
 
-        postService.addCommentToPost(1L,comment);
+        postService.addCommentToPost(1L, comment);
 
         verify(postRepository).findById(1L);
         verify(postRepository).save(changedPost);

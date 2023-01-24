@@ -7,7 +7,6 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,6 +19,7 @@ public class RestResponsePage<T> extends PageImpl<T> {
                             @JsonProperty("numberOfElements") int numberOfElements, @JsonProperty("empty") boolean empty) {
         super(content, PageRequest.of(number, size), totalElements);
     }
+
     public RestResponsePage(List<T> content, Pageable pageable, long total) {
         super(content, pageable, total);
     }

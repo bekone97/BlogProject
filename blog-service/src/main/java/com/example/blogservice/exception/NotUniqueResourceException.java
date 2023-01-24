@@ -1,6 +1,6 @@
 package com.example.blogservice.exception;
 
-public class NotUniqueResourceException extends RuntimeException{
+public class NotUniqueResourceException extends RuntimeException {
 
     public NotUniqueResourceException(String message) {
         super(message);
@@ -8,6 +8,6 @@ public class NotUniqueResourceException extends RuntimeException{
 
     public NotUniqueResourceException(Class<?> resourceType, String fieldName, Object fieldValue) {
         super(String.format("%s already exists with %s=%s",
-                resourceType.getSimpleName(),fieldName,fieldValue));
+                resourceType.getSimpleName(), fieldName, fieldValue));
     }
 }

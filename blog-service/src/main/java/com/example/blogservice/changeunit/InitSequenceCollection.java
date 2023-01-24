@@ -13,34 +13,37 @@ import org.springframework.data.mongodb.core.validation.Validator;
 
 import java.util.List;
 
-@ChangeUnit(id="2023-17-01-init-sequence-collection",order = "001",author = "miachyn.a")
+@ChangeUnit(id = "2023-17-01-init-sequence-collection", order = "001", author = "miachyn.a")
 @RequiredArgsConstructor
 public class InitSequenceCollection {
     private final MongoTemplate mongoTemplate;
     private final List<User> usersList;
+
     @BeforeExecution
-    public void beforeExecution(){
+    public void beforeExecution() {
         mongoTemplate.createCollection("database_sequence", CollectionOptions.empty()
-                        .validator(Validator.schema(MongoJsonSchema.builder()
-                                .properties(
-                                        JsonSchemaProperty.string("id"),
-                                        JsonSchemaProperty.int64("seq")
-                                )
-                                .build())));
+                .validator(Validator.schema(MongoJsonSchema.builder()
+                        .properties(
+                                JsonSchemaProperty.string("id"),
+                                JsonSchemaProperty.int64("seq")
+                        )
+                        .build())));
     }
+
     @Execution
-    public void changeSet(){
+    public void changeSet() {
         String id = User.SEQUENCE_NAME;
         if (!usersList.isEmpty())
-        mongoTemplate.save(new DatabaseSequence(id, (long) usersList.size()));
+            mongoTemplate.save(new DatabaseSequence(id, (long) usersList.size()));
     }
+
     @RollbackBeforeExecution
-    public void rollbackBefore(){
+    public void rollbackBefore() {
         mongoTemplate.dropCollection("database_sequence");
     }
 
     @RollbackExecution
-    public void  rollback(){
-    mongoTemplate.findAllAndRemove(new Query(),"database_sequence");
+    public void rollback() {
+        mongoTemplate.findAllAndRemove(new Query(), "database_sequence");
     }
 }

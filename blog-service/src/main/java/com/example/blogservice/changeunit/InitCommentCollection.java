@@ -8,34 +8,36 @@ import org.springframework.data.mongodb.core.schema.JsonSchemaProperty;
 import org.springframework.data.mongodb.core.schema.MongoJsonSchema;
 import org.springframework.data.mongodb.core.validation.Validator;
 
-@ChangeUnit(id="2023-17-01-init-comment-collection", order = "004", author = "miachyn.a")
+@ChangeUnit(id = "2023-17-01-init-comment-collection", order = "004", author = "miachyn.a")
 @RequiredArgsConstructor
 public class InitCommentCollection {
     private final MongoTemplate mongoTemplate;
 
     @BeforeExecution
-    public void beforeExecution(){
+    public void beforeExecution() {
         mongoTemplate.createCollection("comment", CollectionOptions.empty()
-                        .validator(Validator.schema(MongoJsonSchema.builder()
-                                        .required("text","user")
-                                .properties(
-                                        JsonSchemaProperty.int64("id"),
-                                        JsonSchemaProperty.string("text"),
-                                        JsonSchemaProperty.object("user")
-                                )
-                                .build())));
+                .validator(Validator.schema(MongoJsonSchema.builder()
+                        .required("text", "user")
+                        .properties(
+                                JsonSchemaProperty.int64("id"),
+                                JsonSchemaProperty.string("text"),
+                                JsonSchemaProperty.object("user")
+                        )
+                        .build())));
     }
+
     @Execution
-    public void changeSet(){
+    public void changeSet() {
 //        Do nothing
     }
+
     @RollbackBeforeExecution
-    public void rollbackBefore(){
+    public void rollbackBefore() {
         mongoTemplate.dropCollection("comment");
     }
 
     @RollbackExecution
-    public void  rollback(){
+    public void rollback() {
 //        Do nothing
     }
 }

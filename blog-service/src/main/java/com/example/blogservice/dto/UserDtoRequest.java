@@ -19,17 +19,17 @@ import java.time.LocalDate;
 @Builder
 public class UserDtoRequest {
 
-    @Schema(description = "User's username",example = "Arteminio",minLength = 6,maxLength = 20)
-    @Size(min = 6,message = "{user.validation.username.min}")
-    @Size(max = 20,message = "{user.validation.username.max}")
+    @Schema(description = "User's username", example = "Arteminio", minLength = 6, maxLength = 20)
+    @Size(min = 6, message = "{user.validation.username.min}")
+    @Size(max = 20, message = "{user.validation.username.max}")
     @NotBlank
     private String username;
 
-    @Schema(description = "User's email", example = "amdsldmal@mail.ru",implementation = String.class)
+    @Schema(description = "User's email", example = "amdsldmal@mail.ru", implementation = String.class)
     @Email(message = "{user.validation.email}")
     private String email;
 
-    @Schema(description = "User's date of birth",example = "2000-01-18",pattern = "yyyy-MM-dd",implementation = LocalDate.class)
+    @Schema(description = "User's date of birth", example = "2000-01-18", pattern = "yyyy-MM-dd", implementation = LocalDate.class)
     @UserAgeConstraint
     @NotNull(message = "{user.validation.dateOfBirth.notNull}")
     private LocalDate dateOfBirth;

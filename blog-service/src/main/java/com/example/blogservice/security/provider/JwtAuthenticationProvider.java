@@ -5,7 +5,6 @@ import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTDecodeException;
 import com.auth0.jwt.interfaces.DecodedJWT;
-import com.example.blogservice.exception.NotValidTokenException;
 import com.example.blogservice.security.token.JwtAuthenticationToken;
 import com.example.blogservice.security.user.AuthenticatedUser;
 import lombok.RequiredArgsConstructor;
@@ -33,7 +32,7 @@ public class JwtAuthenticationProvider extends AbstractUserDetailsAuthentication
     }
 
     @Override
-    protected UserDetails retrieveUser(String username, UsernamePasswordAuthenticationToken authentication){
+    protected UserDetails retrieveUser(String username, UsernamePasswordAuthenticationToken authentication) {
         final JwtAuthenticationToken authToken = (JwtAuthenticationToken) authentication;
         final String token = authToken.getToken();
         try {
@@ -42,8 +41,8 @@ public class JwtAuthenticationProvider extends AbstractUserDetailsAuthentication
             DecodedJWT decodedJWT = verifier.verify(token);
             String name = decodedJWT.getSubject();
             UserDetails userDetails = userDetailsService.loadUserByUsername(name);
-            return new AuthenticatedUser(userDetails.getUsername(),token,decodedJWT.getClaim("roles").asString());
-        }catch (JWTDecodeException e){
+            return new AuthenticatedUser(userDetails.getUsername(), token, decodedJWT.getClaim("roles").asString());
+        } catch (JWTDecodeException e) {
             throw new AuthenticationCredentialsNotFoundException(e.getMessage());
         }
     }

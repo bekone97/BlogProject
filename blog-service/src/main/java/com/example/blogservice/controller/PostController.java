@@ -48,13 +48,13 @@ public class PostController {
             @ApiResponse(responseCode = RESPONSE_CODE_OK, description = RESPONSE_DESCRIPTION_OK,
                     content = {@Content(mediaType = APPLICATION_JSON,
                             schema = @Schema(implementation = PostDtoResponse.class))}),
-            @ApiResponse(responseCode = RESPONSE_CODE_BAD_REQUEST, description =RESPONSE_DESCRIPTION_BAD_REQUEST,
+            @ApiResponse(responseCode = RESPONSE_CODE_BAD_REQUEST, description = RESPONSE_DESCRIPTION_BAD_REQUEST,
                     content = {@Content(mediaType = APPLICATION_JSON,
                             schema = @Schema(implementation = ValidationErrorResponse.class))})
     })
     @GetMapping
     @ResponseStatus(OK)
-    public Page<PostDtoResponse> findAllPosts(Pageable pageable){
+    public Page<PostDtoResponse> findAllPosts(Pageable pageable) {
         log.info("Find all posts");
         return postService.findAll(pageable);
     }
@@ -62,7 +62,7 @@ public class PostController {
 
     @Operation(summary = "Returns a post by postId")
     @ApiResponses({
-            @ApiResponse(responseCode =RESPONSE_CODE_OK, description =RESPONSE_DESCRIPTION_OK,
+            @ApiResponse(responseCode = RESPONSE_CODE_OK, description = RESPONSE_DESCRIPTION_OK,
                     content = {@Content(mediaType = APPLICATION_JSON,
                             schema = @Schema(implementation = PostDtoResponse.class))}),
             @ApiResponse(responseCode = RESPONSE_CODE_BAD_REQUEST, description = RESPONSE_DESCRIPTION_BAD_REQUEST,
@@ -74,17 +74,16 @@ public class PostController {
     })
     @GetMapping("/{postId}")
     @ResponseStatus(OK)
-    public PostDtoResponse getPostById(@Parameter(description = "Id of post to be searched",required = true,example = "1")
-                                        @PathVariable @ValidId Long postId){
-        log.info("Get post by id:{}",postId);
+    public PostDtoResponse getPostById(@Parameter(description = "Id of post to be searched", required = true, example = "1")
+                                       @PathVariable @ValidId Long postId) {
+        log.info("Get post by id:{}", postId);
         return postService.getById(postId);
     }
 
 
-
     @Operation(summary = "Save a new post")
     @ApiResponses({
-            @ApiResponse(responseCode =RESPONSE_CODE_CREATED, description = RESPONSE_DESCRIPTION_CREATED,
+            @ApiResponse(responseCode = RESPONSE_CODE_CREATED, description = RESPONSE_DESCRIPTION_CREATED,
                     content = {@Content(mediaType = APPLICATION_JSON,
                             schema = @Schema(implementation = PostDtoResponse.class))}),
             @ApiResponse(responseCode = RESPONSE_CODE_BAD_REQUEST, description = RESPONSE_DESCRIPTION_BAD_REQUEST,
@@ -96,33 +95,33 @@ public class PostController {
     public PostDtoResponse save(@Parameter(description = "Post information for a new post to be created", required = true,
             schema = @Schema(implementation = PostDtoRequest.class))
                                 @Valid @RequestBody PostDtoRequest postDtoRequest,
-                                @AuthenticationPrincipal AuthenticatedUser authenticatedUser){
-        log.info("Save new post by : {}",postDtoRequest);
-        return postService.save(postDtoRequest,authenticatedUser);
+                                @AuthenticationPrincipal AuthenticatedUser authenticatedUser) {
+        log.info("Save new post by : {}", postDtoRequest);
+        return postService.save(postDtoRequest, authenticatedUser);
     }
 
     @Operation(summary = "Update an existing post")
     @ApiResponses({
-            @ApiResponse(responseCode =RESPONSE_CODE_OK, description = RESPONSE_DESCRIPTION_OK,
+            @ApiResponse(responseCode = RESPONSE_CODE_OK, description = RESPONSE_DESCRIPTION_OK,
                     content = {@Content(mediaType = APPLICATION_JSON,
                             schema = @Schema(implementation = PostDtoResponse.class))}),
             @ApiResponse(responseCode = RESPONSE_CODE_BAD_REQUEST, description = RESPONSE_DESCRIPTION_BAD_REQUEST,
                     content = {@Content(mediaType = APPLICATION_JSON,
                             schema = @Schema(implementation = ValidationErrorResponse.class))}),
-            @ApiResponse(responseCode = RESPONSE_CODE_NOT_FOUNDED, description =RESPONSE_DESCRIPTION_NOT_FOUNDED,
+            @ApiResponse(responseCode = RESPONSE_CODE_NOT_FOUNDED, description = RESPONSE_DESCRIPTION_NOT_FOUNDED,
                     content = {@Content(mediaType = APPLICATION_JSON,
                             schema = @Schema(implementation = BlogApiErrorResponse.class))})
     })
     @PutMapping("/{postId}")
     @ResponseStatus(OK)
     public PostDtoResponse update(@Parameter(description = "Id of post to be updated", required = true, example = "1")
-                                    @PathVariable @ValidId Long postId,
+                                  @PathVariable @ValidId Long postId,
                                   @Parameter(description = "Post information for a post to be updated", required = true,
                                           schema = @Schema(implementation = PostDtoRequest.class))
                                   @Valid @RequestBody PostDtoRequest postDtoRequest,
-                                  @AuthenticationPrincipal AuthenticatedUser authenticatedUser){
-        log.info("Update post by id : {} and by : {}",postId,postDtoRequest);
-        return postService.update(postId,postDtoRequest,authenticatedUser);
+                                  @AuthenticationPrincipal AuthenticatedUser authenticatedUser) {
+        log.info("Update post by id : {} and by : {}", postId, postDtoRequest);
+        return postService.update(postId, postDtoRequest, authenticatedUser);
     }
 
     @Operation(summary = "Delete an existing post")
@@ -138,10 +137,10 @@ public class PostController {
     @DeleteMapping("/{postId}")
     @ResponseStatus(OK)
     public void deleteById(@Parameter(description = "Id of post to be deleted", required = true, example = "1")
-                            @PathVariable @ValidId Long postId,
-                           @AuthenticationPrincipal AuthenticatedUser authenticatedUser){
-        log.info("Delete post by id: {}",postId);
-        postService.deleteById(postId,authenticatedUser);
+                           @PathVariable @ValidId Long postId,
+                           @AuthenticationPrincipal AuthenticatedUser authenticatedUser) {
+        log.info("Delete post by id: {}", postId);
+        postService.deleteById(postId, authenticatedUser);
     }
 
     @Operation(summary = "Returns posts of user by userId")
@@ -152,57 +151,57 @@ public class PostController {
             @ApiResponse(responseCode = RESPONSE_CODE_BAD_REQUEST, description = RESPONSE_DESCRIPTION_BAD_REQUEST,
                     content = {@Content(mediaType = APPLICATION_JSON,
                             schema = @Schema(implementation = ValidationErrorResponse.class))}),
-            @ApiResponse(responseCode =RESPONSE_CODE_NOT_FOUNDED, description = RESPONSE_DESCRIPTION_NOT_FOUNDED,
+            @ApiResponse(responseCode = RESPONSE_CODE_NOT_FOUNDED, description = RESPONSE_DESCRIPTION_NOT_FOUNDED,
                     content = {@Content(mediaType = APPLICATION_JSON,
                             schema = @Schema(implementation = BlogApiErrorResponse.class))})
     })
     @GetMapping("/byUser/{userId}")
     @ResponseStatus(OK)
     public List<PostDtoResponse> findAllPostsByUserId(@Parameter(description = "Id of user for posts to be searched", required = true, example = "1")
-                                                            @PathVariable @ValidId Long userId){
-        log.info("Find all posts by user id : {}",userId);
+                                                      @PathVariable @ValidId Long userId) {
+        log.info("Find all posts by user id : {}", userId);
         return postService.findAllByUserId(userId);
     }
 
     @PostMapping("/{postId}/file")
     @ResponseStatus(CREATED)
-    public PostDtoResponse addFileToPost(@Parameter(description = "Id of post for file to be added",required = true)
+    public PostDtoResponse addFileToPost(@Parameter(description = "Id of post for file to be added", required = true)
                                          @PathVariable Long postId,
-                                         @Parameter(description = "The file itself",required = true,schema = @Schema(implementation = MultipartFile.class))
+                                         @Parameter(description = "The file itself", required = true, schema = @Schema(implementation = MultipartFile.class))
                                          @RequestBody MultipartFile file,
-                                         @AuthenticationPrincipal AuthenticatedUser authenticatedUser){
-        log.info("Added file to post with id : {} and with file content-type : {}",postId,file.getContentType());
-        return postService.addFileToPost(postId,file,authenticatedUser);
+                                         @AuthenticationPrincipal AuthenticatedUser authenticatedUser) {
+        log.info("Added file to post with id : {} and with file content-type : {}", postId, file.getContentType());
+        return postService.addFileToPost(postId, file, authenticatedUser);
     }
 
     @PutMapping("/{postId}/file")
     @ResponseStatus(OK)
-    public PostDtoResponse editFileToPost(@Parameter(description = "Id of post for file to be edited",required = true)
-                                              @PathVariable Long postId,
-                                          @Parameter(description = "The new file itself",required = true,schema = @Schema(implementation = MultipartFile.class))
-                                              @RequestBody MultipartFile file,
-                                          @AuthenticationPrincipal AuthenticatedUser authenticatedUser){
-        log.info("Edit file to post with id : {} and with file content-type : {}",postId,file.getContentType());
-        return postService.replaceFileInPost(postId,file,authenticatedUser);
+    public PostDtoResponse editFileToPost(@Parameter(description = "Id of post for file to be edited", required = true)
+                                          @PathVariable Long postId,
+                                          @Parameter(description = "The new file itself", required = true, schema = @Schema(implementation = MultipartFile.class))
+                                          @RequestBody MultipartFile file,
+                                          @AuthenticationPrincipal AuthenticatedUser authenticatedUser) {
+        log.info("Edit file to post with id : {} and with file content-type : {}", postId, file.getContentType());
+        return postService.replaceFileInPost(postId, file, authenticatedUser);
     }
 
     @DeleteMapping("/{postId}/file")
     @ResponseStatus(OK)
-    public void deleteFileFromPost(@Parameter(description = "Id of post for file to be deleted",required = true)
-                                     @PathVariable Long postId,
-                                   @AuthenticationPrincipal AuthenticatedUser authenticatedUser){
-        postService.deleteFileInPost(postId,authenticatedUser);
+    public void deleteFileFromPost(@Parameter(description = "Id of post for file to be deleted", required = true)
+                                   @PathVariable Long postId,
+                                   @AuthenticationPrincipal AuthenticatedUser authenticatedUser) {
+        postService.deleteFileInPost(postId, authenticatedUser);
     }
 
     @GetMapping("/{postId}/file")
     @ResponseStatus(OK)
-    public ResponseEntity<ByteArrayResource> getFileFromPost(@Parameter(description = "Id of post for file to be deleted",required = true)
-                                                        @PathVariable Long postId){
-        log.info("Get file from post :{}",postId);
+    public ResponseEntity<ByteArrayResource> getFileFromPost(@Parameter(description = "Id of post for file to be deleted", required = true)
+                                                             @PathVariable Long postId) {
+        log.info("Get file from post :{}", postId);
         LoadFile file = postService.getFileFromPost(postId);
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(file.getFileType()))
-                .header(HttpHeaders.CONTENT_DISPOSITION,"attachment; filename=\""+file.getFileName()+"\"")
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + file.getFileName() + "\"")
                 .body(new ByteArrayResource(file.getFile()));
     }
 }

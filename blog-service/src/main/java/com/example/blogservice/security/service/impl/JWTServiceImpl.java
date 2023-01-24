@@ -49,17 +49,17 @@ public class JWTServiceImpl implements JWTService {
         refreshTokenService.deactivateRefreshTokensByUserId(user.getId());
         String accessToken = createAccessToken(user);
         String refreshToken = refreshTokenService.createRefreshToken(user).getToken();
-        return createTokensMap(accessToken,refreshToken);
+        return createTokensMap(accessToken, refreshToken);
     }
 
 
     private String createAccessToken(UserDto user) {
         return JWT.create()
                 .withSubject(user.getUsername())
-                .withExpiresAt(new Date(currentTimeMillis()+1000*60*1000))
+                .withExpiresAt(new Date(currentTimeMillis() + 1000 * 60 * 1000))
                 .withIssuer("blogproject.example")
-                .withClaim("userId",user.getId())
-                .withClaim("roles",user.getRole().name())
+                .withClaim("userId", user.getId())
+                .withClaim("roles", user.getRole().name())
                 .sign(getAlgorithm());
     }
 
@@ -70,35 +70,36 @@ public class JWTServiceImpl implements JWTService {
         String refreshToken = getValidHeader(header);
         RefreshToken token = refreshTokenService.getByToken(refreshToken);
         UserDto user = userService.getInnerUserById(token.getUser().getId());
-        return createTokensByRefreshToken(user,token);
+        return createTokensByRefreshToken(user, token);
     }
 
     private Map<String, String> createTokensByRefreshToken(UserDto user, RefreshToken token) {
-        Map<String,String> tokens = new HashMap<>();
-        tokens.put(ACCESS_TOKEN,createAccessToken(user));
-        tokens.put(REFRESH_TOKEN,replacedRefreshToken(user,token).toString());
+        Map<String, String> tokens = new HashMap<>();
+        tokens.put(ACCESS_TOKEN, createAccessToken(user));
+        tokens.put(REFRESH_TOKEN, replacedRefreshToken(user, token).toString());
         return tokens;
     }
 
     private RefreshToken replacedRefreshToken(UserDto user, RefreshToken token) {
         LocalDateTime currentDate = LocalDateTime.now();
-        return refreshTokenService.replaceToken(token,user,currentDate);
+        return refreshTokenService.replaceToken(token, user, currentDate);
     }
+
     private Algorithm getAlgorithm() {
         return Algorithm.HMAC256(SECRET_KEY.getBytes());
     }
 
     private String getValidHeader(String header) {
-        if (header !=null && header.startsWith(TOKEN_PREFIX))
+        if (header != null && header.startsWith(TOKEN_PREFIX))
             return header.substring(TOKEN_PREFIX.length());
         throw new RuntimeException("Not valid header");
     }
 
 
     private Map<String, String> createTokensMap(String accessToken, String refreshToken) {
-        Map<String,String> tokens = new HashMap<>();
-        tokens.put(ACCESS_TOKEN,accessToken);
-        tokens.put(REFRESH_TOKEN,refreshToken);
+        Map<String, String> tokens = new HashMap<>();
+        tokens.put(ACCESS_TOKEN, accessToken);
+        tokens.put(REFRESH_TOKEN, refreshToken);
         return tokens;
     }
 }

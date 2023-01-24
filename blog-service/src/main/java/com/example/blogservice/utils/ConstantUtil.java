@@ -1,14 +1,14 @@
 package com.example.blogservice.utils;
 
 public class ConstantUtil {
-    public static class Exception{
+    public static class Exception {
         public final static String NO_FOUND_PATTERN = "%s wasn't found by %s=%s";
         public final static String NO_FOUNDED_FROM_RESOURCE_PATTERN = "%s wasn't found by %s=%s from %s with %s=%s";
         public static final String NO_ENOUGH_PERMISSIONS = "User has no enough permissions";
         public static final String NOT_VALID_TOKEN = "Token isn't valid";
     }
 
-    public static class SwaggerResponse{
+    public static class SwaggerResponse {
         public final static String APPLICATION_JSON = "application/json";
         public static final String RESPONSE_CODE_OK = "200";
         public static final String RESPONSE_CODE_CREATED = "201";

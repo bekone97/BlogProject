@@ -9,12 +9,14 @@ import java.lang.annotation.*;
 
 @NotNull(message = "{general.validation.validId.notNull}")
 @Positive(message = "{general.validation.validId.positive}")
-@Target({ElementType.METHOD,ElementType.FIELD,ElementType.ANNOTATION_TYPE,ElementType.CONSTRUCTOR,ElementType.PARAMETER,ElementType.TYPE_USE})
+@Target({ElementType.METHOD, ElementType.FIELD, ElementType.ANNOTATION_TYPE, ElementType.CONSTRUCTOR, ElementType.PARAMETER, ElementType.TYPE_USE})
 @Retention(RetentionPolicy.RUNTIME)
 @Constraint(validatedBy = {})
 @Documented
 public @interface ValidId {
     String message() default "";
+
     Class<?>[] groups() default {};
-    Class<? extends Payload>[] payload() default{};
+
+    Class<? extends Payload>[] payload() default {};
 }

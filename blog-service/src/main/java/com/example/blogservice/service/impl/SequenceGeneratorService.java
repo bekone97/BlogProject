@@ -20,9 +20,10 @@ import static org.springframework.data.mongodb.core.query.Criteria.where;
 public class SequenceGeneratorService {
 
     private final MongoOperations mongoOperations;
+
     @Transactional
-    public Long generateSequence(String seqName){
-        log.debug("Get sequence counter for sequence :{}",seqName);
+    public Long generateSequence(String seqName) {
+        log.debug("Get sequence counter for sequence :{}", seqName);
         DatabaseSequence counter = mongoOperations.findAndModify(new Query(where("id").is(seqName)),
                 new Update().inc("seq", 1L), options().returnNew(true).upsert(true), DatabaseSequence.class);
         return !Objects.isNull(counter) ? counter.getSeq() : 1L;

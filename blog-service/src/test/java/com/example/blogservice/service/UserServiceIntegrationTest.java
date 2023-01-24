@@ -32,7 +32,7 @@ import static org.mockito.Mockito.*;
 @SpringBootTest
 @ActiveProfiles("test")
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class UserServiceIntegrationTest extends DatabaseContainerInitializer{
+public class UserServiceIntegrationTest extends DatabaseContainerInitializer {
 
     @Autowired
     private UserService userService;
@@ -47,16 +47,17 @@ public class UserServiceIntegrationTest extends DatabaseContainerInitializer{
     @SpyBean
     private PasswordEncoder passwordEncoder;
 
-    UserDtoRequest userDtoRequest ;
+    UserDtoRequest userDtoRequest;
     UserDtoResponse userDtoResponse;
     User user;
     UserDto userDto;
     AuthenticatedUser authenticatedUser;
     String incomingPassword;
+
     @BeforeEach
-    public void setUp(){
-        incomingPassword="artsiom";
-        user=User.builder()
+    public void setUp() {
+        incomingPassword = "artsiom";
+        user = User.builder()
                 .username("Myachin")
                 .password(incomingPassword)
                 .email("myachinenergo@mail.ru")
@@ -65,8 +66,8 @@ public class UserServiceIntegrationTest extends DatabaseContainerInitializer{
                 .role(Role.ROLE_USER)
                 .build();
         userDtoRequest = modelMapper.map(user, UserDtoRequest.class);
-        userDtoResponse=modelMapper.map(user,UserDtoResponse.class);
-        userDto = modelMapper.map(user,UserDto.class);
+        userDtoResponse = modelMapper.map(user, UserDtoResponse.class);
+        userDto = modelMapper.map(user, UserDto.class);
         authenticatedUser = new AuthenticatedUser("Myachin",
                 "someToken", Role.ROLE_ADMIN.name());
         userRepository.deleteAll();
@@ -82,7 +83,7 @@ public class UserServiceIntegrationTest extends DatabaseContainerInitializer{
 
         UserDtoResponse actual = userService.save(userDtoRequest, incomingPassword);
 
-        assertEquals(expected,actual);
+        assertEquals(expected, actual);
         verify(userRepository).save(any(User.class));
         verify(sequenceGeneratorService).generateSequence(User.SEQUENCE_NAME);
     }
@@ -90,10 +91,10 @@ public class UserServiceIntegrationTest extends DatabaseContainerInitializer{
     @Test
     @Order(2)
     void saveFail() {
-            userRepository.save(user);
+        userRepository.save(user);
 
         NotUniqueResourceException actual = assertThrows(NotUniqueResourceException.class,
-                ()->userService.save(userDtoRequest,"somePassword"));
+                () -> userService.save(userDtoRequest, "somePassword"));
 
         assertTrue(actual.getMessage().contains("User already exists with username=Myachin"));
     }
@@ -102,7 +103,7 @@ public class UserServiceIntegrationTest extends DatabaseContainerInitializer{
     @Order(3)
     void getById() {
         userRepository.save(user);
-        UserDtoResponse expected= userDtoResponse;
+        UserDtoResponse expected = userDtoResponse;
 
         UserDtoResponse actual = userService.getById(1L);
 
@@ -117,12 +118,12 @@ public class UserServiceIntegrationTest extends DatabaseContainerInitializer{
 
         var actual = userService.getInnerUserById(1L);
 
-        assertEquals(expected,actual);
+        assertEquals(expected, actual);
     }
 
     @Test
     @Order(5)
-    void getUserByIdFailed(){
+    void getUserByIdFailed() {
         ResourceNotFoundException actual = assertThrows(ResourceNotFoundException.class,
                 () -> userService.getById(100L));
 
@@ -138,9 +139,9 @@ public class UserServiceIntegrationTest extends DatabaseContainerInitializer{
         UserDtoResponse expected = userDtoResponse;
         expected.setDateOfBirth(LocalDate.now().minusYears(13));
 
-        UserDtoResponse actual = userService.update(1L, userDtoRequest,authenticatedUser);
+        UserDtoResponse actual = userService.update(1L, userDtoRequest, authenticatedUser);
 
-        assertEquals(expected,actual);
+        assertEquals(expected, actual);
 
     }
 
@@ -148,7 +149,7 @@ public class UserServiceIntegrationTest extends DatabaseContainerInitializer{
     @Order(7)
     void deleteById() {
         userRepository.save(user);
-        userService.deleteById(user.getId(),authenticatedUser);
+        userService.deleteById(user.getId(), authenticatedUser);
 
         assertFalse(userRepository.existsById(user.getId()));
     }
@@ -158,7 +159,7 @@ public class UserServiceIntegrationTest extends DatabaseContainerInitializer{
     void deleteByIdFail() {
 
         ResourceNotFoundException actual = assertThrows(ResourceNotFoundException.class,
-                ()->userService.deleteById(100L,authenticatedUser));
+                () -> userService.deleteById(100L, authenticatedUser));
 
         assertTrue(actual.getMessage().contains("User wasn't found by id=100"));
     }
@@ -169,18 +170,18 @@ public class UserServiceIntegrationTest extends DatabaseContainerInitializer{
         userRepository.save(user);
         Collection<SimpleGrantedAuthority> authorities = new ArrayList<>();
         authorities.add(new SimpleGrantedAuthority((user.getRole().name())));
-        org.springframework.security.core.userdetails.User expected=
-                new org.springframework.security.core.userdetails.User(user.getUsername(),user.getPassword(),authorities);
+        org.springframework.security.core.userdetails.User expected =
+                new org.springframework.security.core.userdetails.User(user.getUsername(), user.getPassword(), authorities);
         UserDetails actual = userService.loadUserByUsername(user.getUsername());
 
-        assertEquals(actual,expected);
+        assertEquals(actual, expected);
     }
 
     @Test
     @Order(10)
     void loadUserByUsernameFail() {
         String expectedMessage = "Token isn't valid";
-        String username= "someNotExisting";
+        String username = "someNotExisting";
         userRepository.save(user);
 
         NotValidTokenException exception = assertThrows(NotValidTokenException.class,

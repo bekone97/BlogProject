@@ -14,8 +14,8 @@ public class DeleteModelListener {
     private final DeleteModelResolver deleteModelResolver;
 
     @EventListener
-    public void handleDeleteAction(ModelDeletedEvent modelDeletedEvent){
-        log.info("Received modelDeletedEvent = {}",modelDeletedEvent);
+    public void handleDeleteAction(ModelDeletedEvent modelDeletedEvent) {
+        log.info("Received modelDeletedEvent = {}", modelDeletedEvent);
         deleteModelResolver.prepareModelRemoving(modelDeletedEvent);
     }
 }

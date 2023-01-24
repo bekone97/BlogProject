@@ -18,14 +18,14 @@ public class JsonFileConverterImpl implements JsonFileConverter {
 
     private final ObjectMapper objectMapper;
 
-    public List<?> readValueForList(String fileLocation, Class<?> tClass){
+    public List<?> readValueForList(String fileLocation, Class<?> tClass) {
         try {
             InputStream inputStream = new FileInputStream(fileLocation);
             return objectMapper.readValue(inputStream,
-                    objectMapper.getTypeFactory().constructCollectionType(List.class,tClass));
+                    objectMapper.getTypeFactory().constructCollectionType(List.class, tClass));
         } catch (IOException e) {
             log.error("Init file wasn't found");
             return List.of();
         }
     }
-    }
+}

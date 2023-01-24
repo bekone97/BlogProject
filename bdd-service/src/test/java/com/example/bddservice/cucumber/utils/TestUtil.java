@@ -19,11 +19,11 @@ public class TestUtil {
                 .withClaim("roles", "ROLE_ADMIN")
                 .sign(Algorithm.HMAC256("secret"));
     }
-    public static HttpHeaders createHttpHeaders()
-    {
+
+    public static HttpHeaders createHttpHeaders() {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.add("Authorization",  getJwtToken());
+        headers.add("Authorization", getJwtToken());
         return headers;
     }
 }

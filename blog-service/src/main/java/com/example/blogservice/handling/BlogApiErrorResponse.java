@@ -12,8 +12,8 @@ public class BlogApiErrorResponse {
 
     private String message;
 
-    public BlogApiErrorResponse(String message){
-        this.message=message;
+    public BlogApiErrorResponse(String message) {
+        this.message = message;
     }
 
 }
