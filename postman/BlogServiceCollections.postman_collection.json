@@ -142,7 +142,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n        \"username\": \"AnotherName\",\r\n        \"email\": \"Dimaka@mail.ru\",\r\n        \"dateOfBirth\": \"2008-01-18\"\r\n    }",
+							"raw": "{\r\n        \"username\": \"AnotherName\",\r\n        \"email\": \"Dimaka@mail.ru\",\r\n        \"dateOfBirth\": \"2002-01-18\"\r\n    }",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -150,7 +150,7 @@
 							}
 						},
 						"url": {
-							"raw": "http://localhost:8080/users/3",
+							"raw": "http://localhost:8080/users/2",
 							"protocol": "http",
 							"host": [
 								"localhost"
@@ -158,7 +158,7 @@
 							"port": "8080",
 							"path": [
 								"users",
-								"3"
+								"2"
 							]
 						}
 					},
@@ -232,7 +232,7 @@
 							"bearer": [
 								{
 									"key": "token",
-									"value": "YWRtaW4xUk9MRV9BRE1JTjIwMjMtMDEtMTlUMTY6MTM6NDkuMTI5NjUxNjAwMjAyMy0wMS0yNlQxNjoxMzo0OS4xMjk2NTE2MDBzZWNyZXQ=",
+									"value": "YWRtaW4xUk9MRV9BRE1JTjIwMjMtMDEtMjRUMTk6MTg6MTkuOTc4OTQ1OTAwMjAyMy0wMS0zMVQxOToxODoxOS45Nzg5NDU5MDBzZWNyZXQ=",
 									"type": "string"
 								}
 							]
@@ -275,7 +275,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "http://localhost:8080/posts",
+							"raw": "http://localhost:8080/posts?page=0&size=2&sort=\"id,asc\"",
 							"protocol": "http",
 							"host": [
 								"localhost"
@@ -283,6 +283,20 @@
 							"port": "8080",
 							"path": [
 								"posts"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "2"
+								},
+								{
+									"key": "sort",
+									"value": "\"id,asc\""
+								}
 							]
 						}
 					},
@@ -363,7 +377,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n        \"content\": \"Some interesting updated post\",\r\n        \"userId\": 1,\r\n        \"title\":\"another title\",\r\n        \"img\": null,\r\n        \"audio\": null,\r\n        \"video\": null\r\n    }",
+							"raw": "{\r\n        \"content\": \"Some interesting updated post\",\r\n        \"userId\": 1,\r\n        \"title\":\"another title\"\r\n    }",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -494,7 +508,7 @@
 							}
 						},
 						"url": {
-							"raw": "http://localhost:8080/posts/1/comments/3",
+							"raw": "http://localhost:8080/posts/1/comments/1",
 							"protocol": "http",
 							"host": [
 								"localhost"
@@ -504,7 +518,7 @@
 								"posts",
 								"1",
 								"comments",
-								"3"
+								"1"
 							]
 						}
 					},
@@ -698,7 +712,7 @@
 	"variable": [
 		{
 			"key": "access_token",
-			"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbiIsInJvbGVzIjoiUk9MRV9BRE1JTiIsImlzcyI6ImJsb2dwcm9qZWN0LmV4YW1wbGUiLCJleHAiOjE2NzQ0NjAzMTEsInVzZXJJZCI6MX0.O13uruNfFGoqFaIBylOGPFD02NNKy-NP4Ul_9MVUmGA"
+			"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbiIsInJvbGVzIjoiUk9MRV9BRE1JTiIsImlzcyI6ImJsb2dwcm9qZWN0LmV4YW1wbGUiLCJleHAiOjE2NzQ2MzcxMTIsInVzZXJJZCI6MX0.h4bj5CEeUg5wcQ_gXpv-82AVE5TzAy03kOmf-88aPaQ"
 		},
 		{
 			"key": "log_level",

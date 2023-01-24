@@ -10,7 +10,6 @@ import com.example.blogservice.security.provider.JwtAuthenticationProvider;
 import com.example.blogservice.security.service.JWTService;
 import com.example.blogservice.security.user.AuthenticatedUser;
 import com.example.blogservice.service.UserService;
-import com.example.blogservice.utils.TestUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.ConstraintViolationException;
 import lombok.SneakyThrows;
@@ -24,8 +23,10 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.*;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 
 import java.time.LocalDate;
@@ -148,7 +149,8 @@ class UserControllerTest {
         UserDtoResponse expected = userDtoResponse;
         when(userService.getById(userId)).thenReturn(userDtoResponse);
 
-        String actual = TestUtil.getUserById(mockMvc, userDtoResponse.getId())
+        String actual =mockMvc.perform(MockMvcRequestBuilders.get("/users/{userId}", userId)
+                .contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
 
@@ -162,7 +164,8 @@ class UserControllerTest {
         String expectedMessage = "User wasn't found by id";
         when(userService.getById(userId)).thenThrow(new ResourceNotFoundException(User.class, "id", 1));
 
-        TestUtil.getUserById(mockMvc, userDtoResponse.getId())
+        mockMvc.perform(MockMvcRequestBuilders.get("/users/{userId}", userId)
+                        .contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(status().isNotFound())
                 .andExpect(result -> assertTrue(result.getResolvedException() instanceof ResourceNotFoundException))
                 .andExpect(result -> assertTrue(result.getResolvedException().getMessage().contains(expectedMessage)));
@@ -176,7 +179,8 @@ class UserControllerTest {
         String expectedMessage = "{general.validation.validId.positive}";
         userId = -1L;
 
-        TestUtil.getUserById(mockMvc, userId)
+        mockMvc.perform(MockMvcRequestBuilders.get("/users/{userId}", userId)
+                        .contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(status().isBadRequest())
                 .andExpect(result -> assertTrue(result.getResolvedException() instanceof ConstraintViolationException))
                 .andExpect(result -> assertTrue(result.getResolvedException().getMessage().contains(expectedMessage)));

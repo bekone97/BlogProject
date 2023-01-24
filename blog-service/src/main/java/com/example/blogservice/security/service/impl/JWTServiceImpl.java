@@ -76,7 +76,7 @@ public class JWTServiceImpl implements JWTService {
     private Map<String, String> createTokensByRefreshToken(UserDto user, RefreshToken token) {
         Map<String, String> tokens = new HashMap<>();
         tokens.put(ACCESS_TOKEN, createAccessToken(user));
-        tokens.put(REFRESH_TOKEN, replacedRefreshToken(user, token).toString());
+        tokens.put(REFRESH_TOKEN, replacedRefreshToken(user, token).getToken());
         return tokens;
     }
 
