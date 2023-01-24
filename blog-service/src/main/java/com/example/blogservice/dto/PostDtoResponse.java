@@ -23,7 +23,7 @@ public class PostDtoResponse {
 
     @Schema(description = "Some file in post")
     private LoadFile file;
-
+    @Schema(description = "Title of post",example = "Some awesome title",implementation = String.class)
     private String title;
 
     @Schema(description = "List of comments which are in this post", implementation = CommentDtoResponse.class)

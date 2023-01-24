@@ -163,6 +163,19 @@ public class PostController {
         return postService.findAllByUserId(userId);
     }
 
+
+    @Operation(summary = "Added file to post")
+    @ApiResponses({
+            @ApiResponse(responseCode = RESPONSE_CODE_CREATED, description = RESPONSE_DESCRIPTION_OK,
+                    content = {@Content(mediaType = APPLICATION_JSON,
+                            schema = @Schema(implementation = PostDtoResponse.class))}),
+            @ApiResponse(responseCode = RESPONSE_CODE_BAD_REQUEST, description = RESPONSE_DESCRIPTION_BAD_REQUEST,
+                    content = {@Content(mediaType = APPLICATION_JSON,
+                            schema = @Schema(implementation = ValidationErrorResponse.class))}),
+            @ApiResponse(responseCode = RESPONSE_CODE_NOT_FOUNDED, description = RESPONSE_DESCRIPTION_NOT_FOUNDED,
+                    content = {@Content(mediaType = APPLICATION_JSON,
+                            schema = @Schema(implementation = BlogApiErrorResponse.class))})
+    })
     @PostMapping("/{postId}/file")
     @ResponseStatus(CREATED)
     public PostDtoResponse addFileToPost(@Parameter(description = "Id of post for file to be added", required = true)
@@ -174,17 +187,42 @@ public class PostController {
         return postService.addFileToPost(postId, file, authenticatedUser);
     }
 
+    @Operation(summary = "Replace file in post")
+    @ApiResponses({
+            @ApiResponse(responseCode = RESPONSE_CODE_OK, description = RESPONSE_DESCRIPTION_OK,
+                    content = {@Content(mediaType = APPLICATION_JSON,
+                            schema = @Schema(implementation = PostDtoResponse.class))}),
+            @ApiResponse(responseCode = RESPONSE_CODE_BAD_REQUEST, description = RESPONSE_DESCRIPTION_BAD_REQUEST,
+                    content = {@Content(mediaType = APPLICATION_JSON,
+                            schema = @Schema(implementation = ValidationErrorResponse.class))}),
+            @ApiResponse(responseCode = RESPONSE_CODE_NOT_FOUNDED, description = RESPONSE_DESCRIPTION_NOT_FOUNDED,
+                    content = {@Content(mediaType = APPLICATION_JSON,
+                            schema = @Schema(implementation = BlogApiErrorResponse.class))})
+    })
     @PutMapping("/{postId}/file")
     @ResponseStatus(OK)
     public PostDtoResponse editFileToPost(@Parameter(description = "Id of post for file to be edited", required = true)
                                           @PathVariable Long postId,
-                                          @Parameter(description = "The new file itself", required = true, schema = @Schema(implementation = MultipartFile.class))
+                                          @Parameter(description = "The new file itself", required = true,
+                                                  schema = @Schema(implementation = MultipartFile.class))
                                           @RequestBody MultipartFile file,
                                           @AuthenticationPrincipal AuthenticatedUser authenticatedUser) {
         log.info("Edit file to post with id : {} and with file content-type : {}", postId, file.getContentType());
         return postService.replaceFileInPost(postId, file, authenticatedUser);
     }
 
+    @Operation(summary = "Delete file in post")
+    @ApiResponses({
+            @ApiResponse(responseCode = RESPONSE_CODE_CREATED, description = RESPONSE_DESCRIPTION_OK,
+                    content = {@Content(mediaType = APPLICATION_JSON,
+                            schema = @Schema(implementation = PostDtoResponse.class))}),
+            @ApiResponse(responseCode = RESPONSE_CODE_BAD_REQUEST, description = RESPONSE_DESCRIPTION_BAD_REQUEST,
+                    content = {@Content(mediaType = APPLICATION_JSON,
+                            schema = @Schema(implementation = ValidationErrorResponse.class))}),
+            @ApiResponse(responseCode = RESPONSE_CODE_NOT_FOUNDED, description = RESPONSE_DESCRIPTION_NOT_FOUNDED,
+                    content = {@Content(mediaType = APPLICATION_JSON,
+                            schema = @Schema(implementation = BlogApiErrorResponse.class))})
+    })
     @DeleteMapping("/{postId}/file")
     @ResponseStatus(OK)
     public void deleteFileFromPost(@Parameter(description = "Id of post for file to be deleted", required = true)
@@ -193,6 +231,20 @@ public class PostController {
         postService.deleteFileInPost(postId, authenticatedUser);
     }
 
+
+
+    @Operation(summary = "Get file from post")
+    @ApiResponses({
+            @ApiResponse(responseCode = RESPONSE_CODE_CREATED, description = RESPONSE_DESCRIPTION_OK,
+                    content = {@Content(mediaType = APPLICATION_JSON,
+                            schema = @Schema(implementation = PostDtoResponse.class))}),
+            @ApiResponse(responseCode = RESPONSE_CODE_BAD_REQUEST, description = RESPONSE_DESCRIPTION_BAD_REQUEST,
+                    content = {@Content(mediaType = APPLICATION_JSON,
+                            schema = @Schema(implementation = ValidationErrorResponse.class))}),
+            @ApiResponse(responseCode = RESPONSE_CODE_NOT_FOUNDED, description = RESPONSE_DESCRIPTION_NOT_FOUNDED,
+                    content = {@Content(mediaType = APPLICATION_JSON,
+                            schema = @Schema(implementation = BlogApiErrorResponse.class))})
+    })
     @GetMapping("/{postId}/file")
     @ResponseStatus(OK)
     public ResponseEntity<ByteArrayResource> getFileFromPost(@Parameter(description = "Id of post for file to be deleted", required = true)

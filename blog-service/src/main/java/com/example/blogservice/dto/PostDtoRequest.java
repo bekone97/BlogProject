@@ -21,6 +21,7 @@ public class PostDtoRequest {
 
     @NotNull(message = "{post.validation.title.notNull}")
     @NotBlank(message = "{post.validation.title.notBlank}")
+    @Schema(description = "Title of post",example = "Some awesome title",implementation = String.class)
     private String title;
 
     @Schema(description = "Some text are written in this post", implementation = String.class)
