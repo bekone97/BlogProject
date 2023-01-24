@@ -712,7 +712,7 @@
 	"variable": [
 		{
 			"key": "access_token",
-			"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbiIsInJvbGVzIjoiUk9MRV9BRE1JTiIsImlzcyI6ImJsb2dwcm9qZWN0LmV4YW1wbGUiLCJleHAiOjE2NzQ2MzcxMTIsInVzZXJJZCI6MX0.h4bj5CEeUg5wcQ_gXpv-82AVE5TzAy03kOmf-88aPaQ"
+			"value": ""
 		},
 		{
 			"key": "log_level",

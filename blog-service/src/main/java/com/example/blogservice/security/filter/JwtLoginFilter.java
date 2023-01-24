@@ -23,8 +23,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 public class JwtLoginFilter extends UsernamePasswordAuthenticationFilter {
     public static final String SECURITY_USERNAME_KEY = "username";
     public static final String SECURITY_PASSWORD_KEY = "password";
-    public static final String ACCESS_TOKEN = "access_token";
-    public static final String REFRESH_TOKEN = "refresh_token";
+
 
     private final UserService userService;
     private final JWTService jwtService;
@@ -43,7 +42,7 @@ public class JwtLoginFilter extends UsernamePasswordAuthenticationFilter {
                                             HttpServletResponse response,
                                             FilterChain chain,
                                             Authentication authResult) throws IOException, ServletException {
-        String username = (String) authResult.getName();
+        String username =  authResult.getName();
         UserDto user = userService.getUserByUsername(username);
         Map<String, String> tokens = jwtService.createAccessAndRefreshTokens(user);
         response.setContentType(APPLICATION_JSON_VALUE);
