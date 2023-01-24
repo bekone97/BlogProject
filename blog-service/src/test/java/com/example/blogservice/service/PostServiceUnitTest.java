@@ -254,7 +254,7 @@ class PostServiceUnitTest {
 
     @Test
     void updateFailCredentials() {
-        String expectedMessage = "Credentials of principle are not valid";
+        String expectedMessage = "User has no enough permissions";
         authenticatedUser=null;
         when(userService.getById(1L)).thenReturn(userDtoResponse);
 
@@ -300,7 +300,7 @@ class PostServiceUnitTest {
     @Test
     void deleteByIdFailCredentials() {
         authenticatedUser=null;
-        String expectedMessage = "Credentials of principle are not valid";
+        String expectedMessage = "User has no enough permissions";
         when(postRepository.findById(1L)).thenReturn(Optional.ofNullable(post));
 
         NotValidCredentialsException actual = assertThrows(NotValidCredentialsException.class,

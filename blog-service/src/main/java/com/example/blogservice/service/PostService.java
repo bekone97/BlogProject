@@ -34,9 +34,9 @@ public interface PostService {
 
     PostDtoResponse addFileToPost(Long postId, MultipartFile file, AuthenticatedUser authenticatedUser);
 
-    PostDtoResponse editFileToPost(Long postId, MultipartFile file, AuthenticatedUser authenticatedUser);
+    PostDtoResponse replaceFileInPost(Long postId, MultipartFile file, AuthenticatedUser authenticatedUser);
 
-    void deleteFileToPost(Long postId, AuthenticatedUser authenticatedUser);
+    void deleteFileInPost(Long postId, AuthenticatedUser authenticatedUser);
 
     LoadFile getFileFromPost(Long postId);
 

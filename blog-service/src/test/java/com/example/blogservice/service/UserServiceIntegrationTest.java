@@ -4,6 +4,7 @@ import com.example.blogservice.dto.UserDto;
 import com.example.blogservice.dto.UserDtoRequest;
 import com.example.blogservice.dto.UserDtoResponse;
 import com.example.blogservice.exception.NotUniqueResourceException;
+import com.example.blogservice.exception.NotValidTokenException;
 import com.example.blogservice.exception.ResourceNotFoundException;
 import com.example.blogservice.initializer.DatabaseContainerInitializer;
 import com.example.blogservice.model.Role;
@@ -15,11 +16,7 @@ import org.junit.jupiter.api.*;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.SpyBean;
-import org.springframework.context.annotation.Bean;
-import org.springframework.core.task.SyncTaskExecutor;
-import org.springframework.core.task.TaskExecutor;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -37,14 +34,6 @@ import static org.mockito.Mockito.*;
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class UserServiceIntegrationTest extends DatabaseContainerInitializer{
 
-    @TestConfiguration
-    static class TestConfig {
-
-        @Bean
-        public TaskExecutor taskExecutor(){
-            return new SyncTaskExecutor();
-        }
-    }
     @Autowired
     private UserService userService;
     @Autowired
@@ -185,5 +174,19 @@ public class UserServiceIntegrationTest extends DatabaseContainerInitializer{
         UserDetails actual = userService.loadUserByUsername(user.getUsername());
 
         assertEquals(actual,expected);
+    }
+
+    @Test
+    @Order(10)
+    void loadUserByUsernameFail() {
+        String expectedMessage = "Token isn't valid";
+        String username= "someNotExisting";
+        userRepository.save(user);
+
+        NotValidTokenException exception = assertThrows(NotValidTokenException.class,
+                () -> userService.loadUserByUsername(username));
+
+        assertTrue(exception.getMessage().contains("Token isn't valid"));
+
     }
 }

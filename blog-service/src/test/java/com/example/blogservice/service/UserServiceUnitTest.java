@@ -9,6 +9,7 @@ import com.example.blogservice.event.ModelType;
 import com.example.blogservice.event.ModelUpdatedEvent;
 import com.example.blogservice.exception.NotUniqueResourceException;
 import com.example.blogservice.exception.NotValidCredentialsException;
+import com.example.blogservice.exception.NotValidTokenException;
 import com.example.blogservice.exception.ResourceNotFoundException;
 import com.example.blogservice.mapper.UserMapper;
 import com.example.blogservice.model.Role;
@@ -368,10 +369,10 @@ public class UserServiceUnitTest {
 
         when(userRepository.findUserByUsername(user.getUsername())).thenReturn(Optional.empty());
 
-       ResourceNotFoundException actual = assertThrows(ResourceNotFoundException.class,
+       NotValidTokenException actual = assertThrows(NotValidTokenException.class,
                ()->userService.loadUserByUsername(user.getUsername()));
 
-        assertTrue(actual.getMessage().contains("User wasn't found by username="+user.getUsername()));
+        assertTrue(actual.getMessage().contains("Token isn't valid"));
         verify(userRepository).findUserByUsername(user.getUsername());
     }
 }

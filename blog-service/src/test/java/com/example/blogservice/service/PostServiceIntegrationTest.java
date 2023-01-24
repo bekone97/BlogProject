@@ -7,7 +7,6 @@ import com.example.blogservice.event.ModelUpdatedEvent;
 import com.example.blogservice.exception.NotValidCredentialsException;
 import com.example.blogservice.exception.ResourceNotFoundException;
 import com.example.blogservice.initializer.DatabaseContainerInitializer;
-import com.example.blogservice.mapper.PostMapper;
 import com.example.blogservice.model.Comment;
 import com.example.blogservice.model.Post;
 import com.example.blogservice.model.Role;
@@ -21,11 +20,7 @@ import org.junit.jupiter.api.*;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.SpyBean;
-import org.springframework.context.annotation.Bean;
-import org.springframework.core.task.SyncTaskExecutor;
-import org.springframework.core.task.TaskExecutor;
 import org.springframework.data.domain.*;
 import org.springframework.test.context.ActiveProfiles;
 
@@ -33,7 +28,6 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicLong;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -225,7 +219,7 @@ public class PostServiceIntegrationTest extends DatabaseContainerInitializer {
     @Order(8)
     void updateFailCredentials() {
 
-        String expectedMessage = "Credentials of principle are not valid";
+        String expectedMessage = "User has no enough permissions";
         authenticatedUser=null;
 
         NotValidCredentialsException exception = assertThrows(NotValidCredentialsException.class,
@@ -265,7 +259,7 @@ public class PostServiceIntegrationTest extends DatabaseContainerInitializer {
 
         postRepository.save(post);
         authenticatedUser=null;
-        String expectedMessage = "Credentials of principle are not valid";
+        String expectedMessage = "User has no enough permissions";
         when(postRepository.findById(post.getId())).thenReturn(Optional.ofNullable(post));
 
         NotValidCredentialsException actual = assertThrows(NotValidCredentialsException.class,

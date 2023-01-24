@@ -33,11 +33,14 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.example.blogservice.utils.ConstantUtil.Exception.NO_ENOUGH_PERMISSIONS;
+
 @Service
 @Slf4j
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class CommentServiceImpl implements CommentService {
+
     private final CommentRepository commentRepository;
     private final PostService postService;
     private final UserService userService;
@@ -47,7 +50,7 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     public Page<CommentDtoResponse> findAllCommentsByPost(Long postId, Pageable pageable) {
-        log.info("Get all comments of post : {}",postId);
+        log.debug("Get all comments of post : {}",postId);
         PostDtoResponse postDtoResponse=postService.getById(postId);
         List<Long> commentIds = postDtoResponse.getComments().stream()
                 .map(CommentDtoResponse::getId)
@@ -59,7 +62,7 @@ public class CommentServiceImpl implements CommentService {
     @Override
     @Cacheable(value = "comment",key = "#commentId")
     public CommentDtoResponse findCommentByPostIdAndCommentId(Long postId, Long commentId) {
-        log.info("Get comment with id : {} from post with id : {}",commentId,postId);
+        log.debug("Get comment with id : {} from post with id : {}",commentId,postId);
         return postService.getById(postId).getComments().stream()
                 .filter(comment -> comment.getId().equals(commentId))
                 .findFirst()
@@ -69,7 +72,7 @@ public class CommentServiceImpl implements CommentService {
     @Override
     @Transactional
     public CommentDtoResponse save(CommentDtoRequest commentDtoRequest, Long postId, AuthenticatedUser authenticatedUser) {
-        log.info("Save new comment by : {} to post with id : {}",commentDtoRequest,postId);
+        log.debug("Save new comment by : {} to post with id : {}",commentDtoRequest,postId);
         if (authenticatedUser==null)
             throw new NotValidCredentialsException("User must be authenticated to save comment");
         if (postService.existsById(postId)) {
@@ -84,18 +87,12 @@ public class CommentServiceImpl implements CommentService {
         throw new ResourceNotFoundException(Post.class,"id",postId);
     }
 
-    private void publishSave(Comment newComment) {
-        applicationEventPublisher.publishEvent(ModelCreatedEvent.builder()
-                        .modelName(Comment.class.getName())
-                        .modelId(newComment.getId())
-                .build());
-    }
 
     @Override
     @Transactional
     @CachePut(value = "comment",key = "#commentId")
     public CommentDtoResponse update(Long commentId, Long postId, CommentDtoRequest commentDtoRequest, AuthenticatedUser authenticatedUser) {
-        log.info("Update comment with id : {} by : {} from post with id : {}",commentId,commentDtoRequest,postId);
+        log.debug("Update comment with id : {} by : {} from post with id : {}",commentId,commentDtoRequest,postId);
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(()->{
                     log.error("Comment with id : {} wasn't found",commentId);
@@ -112,7 +109,7 @@ public class CommentServiceImpl implements CommentService {
     @Override
     @CacheEvict(value = "comment",key = "#commentId")
     public void delete(Long commentId, Long postId, AuthenticatedUser authenticatedUser) {
-        log.info("Delete comment by id : {}  from post with id : {}", commentId,postId);
+        log.debug("Delete comment by id : {}  from post with id : {}", commentId,postId);
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(()->{
                     log.error("Comment with id : {} wasn't found",commentId);
@@ -138,7 +135,7 @@ public class CommentServiceImpl implements CommentService {
     }
     @Override
     public void deleteAllByUser(User user) {
-        log.info("Delete all coments by user");
+        log.debug("Delete all coments by user");
         commentRepository.findAllByUserId(user.getId()).stream()
                 .peek(this::publishDelete)
                 .forEachOrdered(commentRepository::delete);
@@ -146,7 +143,7 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     public void deleteAllByPost(Post post) {
-        log.info("Delete all comments by post : {}",post);
+        log.debug("Delete all comments by post : {}",post);
         commentRepository.deleteAll(post.getComments());
     }
 
@@ -162,6 +159,13 @@ public class CommentServiceImpl implements CommentService {
                         authenticatedUser.getAuthorities().stream().anyMatch(authority->authority.getAuthority().equals("ROLE_ADMIN")))
                 .orElseThrow(()->new ResourceNotFoundException(Comment.class,"id",commentId,Post.class,"id",postId));
         if (!isValid)
-            throw new NotValidCredentialsException("User has no enough permissions");
+            throw new NotValidCredentialsException(NO_ENOUGH_PERMISSIONS);
     }
+    private void publishSave(Comment newComment) {
+        applicationEventPublisher.publishEvent(ModelCreatedEvent.builder()
+                .modelName(Comment.class.getName())
+                .modelId(newComment.getId())
+                .build());
+    }
+
 }

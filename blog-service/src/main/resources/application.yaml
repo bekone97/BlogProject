@@ -12,6 +12,15 @@ spring:
       max-file-size: 256MB
       max-request-size: 256MB
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: loggers
+  endpoint:
+    loggers:
+      enabled: true
+
 
 mongock:
   migration-scan-package: com.example.blogservice.changeunit

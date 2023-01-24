@@ -8,6 +8,7 @@ import com.example.blogservice.event.ModelCreatedEvent;
 import com.example.blogservice.event.ModelDeletedEvent;
 import com.example.blogservice.event.ModelType;
 import com.example.blogservice.event.ModelUpdatedEvent;
+import com.example.blogservice.exception.NotUniqueResourceException;
 import com.example.blogservice.exception.NotValidCredentialsException;
 import com.example.blogservice.exception.ResourceNotFoundException;
 import com.example.blogservice.mapper.PostMapper;
@@ -37,6 +38,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static com.example.blogservice.utils.ConstantUtil.Exception.NO_ENOUGH_PERMISSIONS;
+
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -53,7 +56,7 @@ public class PostServiceImpl implements PostService {
     @Override
     @Cacheable(value = "post",key = "#id")
     public PostDtoResponse getById(Long id) {
-        log.info("Get post by id : {}",id);
+        log.debug("Get post by id : {}",id);
         return postRepository.findById(id)
                 .map(this::getPostDtoResponse)
                 .orElseThrow(()-> {
@@ -66,7 +69,7 @@ public class PostServiceImpl implements PostService {
 
     @Override
     public Page<PostDtoResponse> findAll(Pageable pageable) {
-        log.info("Find all posts");
+        log.debug("Find all posts");
         return postRepository.findAll(pageable != null ?
                         pageable :
                         PageRequest.of(1, 3, Sort.by("id")))
@@ -76,7 +79,7 @@ public class PostServiceImpl implements PostService {
     @Override
     @Transactional
     public PostDtoResponse save(PostDtoRequest postDtoRequest, AuthenticatedUser authenticatedUser) {
-        log.info("Save post from postDroRequest:{}",postDtoRequest);
+        log.debug("Save post from postDroRequest:{}",postDtoRequest);
         if (authenticatedUser==null)
             throw  new NotValidCredentialsException("User must be authenticated to save post");
         UserDtoResponse userDtoResponse = userService.getById(postDtoRequest.getUserId());
@@ -91,7 +94,7 @@ public class PostServiceImpl implements PostService {
     @Transactional
     @CachePut(value = "post",key = "#postId")
     public PostDtoResponse update(Long postId, PostDtoRequest postDtoRequest, AuthenticatedUser authenticatedUser) {
-        log.info("Check existing post by id : {} and update it by : {}", postId, postDtoRequest);
+        log.debug("Check existing post by id : {} and update it by : {}", postId, postDtoRequest);
         UserDtoResponse userDtoResponse = userService.getById(postDtoRequest.getUserId());
         checkValidCredentials(userDtoResponse, authenticatedUser);
         return postRepository.findById(postId)
@@ -111,7 +114,7 @@ public class PostServiceImpl implements PostService {
     @Transactional
     @CacheEvict(value = "post",key = "#postId")
     public void deleteById(Long postId, AuthenticatedUser authenticatedUser) {
-        log.info("Check existing post by id : {} and delete it",postId);
+        log.debug("Check existing post by id : {} and delete it",postId);
         Optional<Post> optionalPost = postRepository.findById(postId);
         if (optionalPost.isEmpty()){
             throw new ResourceNotFoundException(Post.class,"id",postId);
@@ -127,7 +130,7 @@ public class PostServiceImpl implements PostService {
 
     @Override
     public List<PostDtoResponse> findAllByUserId(Long userId) {
-        log.info("Find all posts by user id : {}",userId);
+        log.debug("Find all posts by user id : {}",userId);
         if (userService.existsById(userId)){
             return postRepository.findAllByUserId(userId).stream()
                     .map(this::getPostDtoResponse)
@@ -138,20 +141,21 @@ public class PostServiceImpl implements PostService {
 
     @Override
     public boolean existsById(Long postId) {
-        log.info("Check existing by id : {} ",postId);
+        log.debug("Check existing by id : {} ",postId);
         return postRepository.existsById(postId);
     }
 
     @Override
     @Transactional
     @CacheEvict(value = "posts", key = "#postId")
-    public void addCommentToPost(Long postId, Comment newComment) {
+    public void addCommentToPost(Long postId, Comment comment) {
+        log.debug("Add comment : {} to post with id : {}",comment,postId);
        postRepository.findById(postId)
                 .map(post -> {
                     if (post.getComments()==null){
-                        post.setComments(List.of(newComment));
+                        post.setComments(List.of(comment));
                     }else {
-                        post.getComments().add(newComment);
+                        post.getComments().add(comment);
                     }
                     publishUpdate(postId);
                     return postRepository.save(post);
@@ -161,17 +165,20 @@ public class PostServiceImpl implements PostService {
 
     @Override
     public boolean existsByPostIdAndComment(Long postId, Comment comment) {
+        log.debug("Check existing post with id : {} and with comment : {}",postId,comment);
         return postRepository.existsByIdAndCommentsContaining(postId,comment);
     }
 
     @Override
     @Transactional
     public PostDtoResponse addFileToPost(Long postId, MultipartFile file, AuthenticatedUser authenticatedUser) {
+        log.debug("Add file with originalName:{}, contentType :{} to post with id : {} by user : {}",
+                file.getOriginalFilename(),file.getContentType(),postId,authenticatedUser.getUsername());
         return postRepository.findById(postId)
                         .map(post -> {
                             checkValidCredentials(post.getUser(), authenticatedUser);
                             if (post.getFile()!=null)
-                                throw new RuntimeException("File already exists");
+                                throw new NotUniqueResourceException(LoadFile.class,"post",postId);
                             post.setFile(fileService.uploadFile(file));
                             publishUpdate(postId);
                             return postRepository.save(post);
@@ -182,7 +189,9 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional
-    public PostDtoResponse editFileToPost(Long postId, MultipartFile file, AuthenticatedUser authenticatedUser) {
+    public PostDtoResponse replaceFileInPost(Long postId, MultipartFile file, AuthenticatedUser authenticatedUser) {
+        log.debug("New file with originalName:{}, contentType : {} in post with id : {} and delete old one by user : {}",
+                file.getOriginalFilename(),file.getContentType(),postId,authenticatedUser.getUsername());
         return postRepository.findById(postId)
                 .map(post -> {
                     checkValidCredentials(post.getUser(), authenticatedUser);
@@ -198,12 +207,13 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public void deleteFileToPost(Long postId, AuthenticatedUser authenticatedUser) {
+    public void deleteFileInPost(Long postId, AuthenticatedUser authenticatedUser) {
+        log.debug("Delete file in post with id : {} by user : {}",postId,authenticatedUser.getUsername());
         postRepository.findById(postId)
                 .map(post -> {
                     checkValidCredentials(post.getUser(), authenticatedUser);
                     if (post.getFile()==null)
-                        throw new RuntimeException("File doesn't exist");
+                        throw new ResourceNotFoundException(LoadFile.class,"postId",postId);
                     fileService.deleteFile(post.getFile());
                     post.setFile(null);
                     publishUpdate(postId);
@@ -212,15 +222,11 @@ public class PostServiceImpl implements PostService {
                 .orElseThrow(()->new ResourceNotFoundException(Post.class,"id",postId));
     }
 
-    private void publishUpdate(Long postId) {
-        applicationEventPublisher.publishEvent(ModelUpdatedEvent.builder()
-                .modelId(postId)
-                .modelName(Post.class.getName())
-                .build());
-    }
+
 
     @Override
     public LoadFile getFileFromPost(Long postId) {
+        log.debug("Get file from post with id : {}",postId);
         return postRepository.findById(postId)
                 .map(post -> {
                     if (post.getFile()==null)
@@ -234,7 +240,7 @@ public class PostServiceImpl implements PostService {
     @Override
     @Transactional
     public void deleteAllByUser(User user) {
-        log.info("Delete all posts by user Id : {}",user);
+        log.debug("Delete all posts by user Id : {}",user);
         postRepository.findAllByUserId(user.getId()).stream()
                 .peek(post->applicationEventPublisher.publishEvent(ModelDeletedEvent.builder()
                                 .model(post)
@@ -246,7 +252,7 @@ public class PostServiceImpl implements PostService {
     @Override
     @Transactional
     public void deleteCommentFromPostByComment(Comment comment) {
-        log.info("Delete comment from post with comment id : {}", comment);
+        log.debug("Delete comment from post with comment id : {}", comment);
         Optional<Post> optionalPost = postRepository.findPostByCommentsIsContaining(comment);
         if (optionalPost.isPresent()){
             Post post = optionalPost.get();
@@ -268,16 +274,21 @@ public class PostServiceImpl implements PostService {
     private void checkValidCredentials(UserDtoResponse userDtoResponse, AuthenticatedUser authenticatedUser) {
         if (authenticatedUser==null || !userDtoResponse.getUsername().equals(authenticatedUser.getUsername())||
                 authenticatedUser.getAuthorities().stream().noneMatch(authority->authority.getAuthority().equals("ROLE_ADMIN"))){
-            throw new NotValidCredentialsException("Credentials of principle are not valid");
+            throw new NotValidCredentialsException(NO_ENOUGH_PERMISSIONS);
         }
     }
     private void checkValidCredentials(User user, AuthenticatedUser authenticatedUser) {
         if (authenticatedUser==null ||!user.getUsername().equals(authenticatedUser.getUsername())||
                 authenticatedUser.getAuthorities().stream().noneMatch(authority->authority.getAuthority().equals("ROLE_ADMIN"))){
-            throw new NotValidCredentialsException("Credentials of principle are not valid");
+            throw new NotValidCredentialsException(NO_ENOUGH_PERMISSIONS);
         }
     }
-
+    private void publishUpdate(Long postId) {
+        applicationEventPublisher.publishEvent(ModelUpdatedEvent.builder()
+                .modelId(postId)
+                .modelName(Post.class.getName())
+                .build());
+    }
     private void publishSave(Post post) {
         applicationEventPublisher.publishEvent(ModelCreatedEvent.builder()
                 .modelId(post.getId())

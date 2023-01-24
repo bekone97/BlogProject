@@ -26,15 +26,16 @@ public class ModelUpdateStatisticsServiceImpl implements ModelUpdateStatisticsSe
 
     @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void update(ModelUpdateStatistics updateModelInf) {
-         mongoOperations.findAndModify(new Query(Criteria.where("id").is(updateModelInf.getId())),
+    public void update(ModelUpdateStatistics modelUpdateStatistics) {
+        log.debug("Get modeUpdateStatistics : {}",modelUpdateStatistics);
+         mongoOperations.findAndModify(new Query(Criteria.where("id").is(modelUpdateStatistics.getId())),
                 new Update().inc("updateCount", 1), options().returnNew(false), ModelUpdateStatistics.class);
     }
 
     @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void save(ModelUpdateStatistics createModelInf) {
-        log.info("Make save modelUpdateStistics = {}",createModelInf);
-        modelUpdateStatisticsRepository.save(createModelInf);
+    public void save(ModelUpdateStatistics modelUpdateStatistics) {
+        log.info("Make save modelUpdateStatistics = {}",modelUpdateStatistics);
+        modelUpdateStatisticsRepository.save(modelUpdateStatistics);
     }
 }

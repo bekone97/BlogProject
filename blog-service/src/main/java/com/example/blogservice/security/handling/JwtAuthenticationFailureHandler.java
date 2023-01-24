@@ -25,7 +25,7 @@ public class JwtAuthenticationFailureHandler implements AuthenticationFailureHan
     public void onAuthenticationFailure(HttpServletRequest request,
                                         HttpServletResponse response,
                                         AuthenticationException exception) throws IOException{
-      log.error("Rejected access : Unauthorized",exception);
+      log.error("Rejected access : {} for url : {}",exception.getMessage(),request.getRequestURL());
       final BlogApiErrorResponse blogApiErrorResponse = new BlogApiErrorResponse(exception.getMessage());
 
       response.setContentType(APPLICATION_JSON_VALUE);

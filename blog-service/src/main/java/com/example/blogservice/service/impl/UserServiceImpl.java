@@ -10,6 +10,7 @@ import com.example.blogservice.event.ModelType;
 import com.example.blogservice.event.ModelUpdatedEvent;
 import com.example.blogservice.exception.NotUniqueResourceException;
 import com.example.blogservice.exception.NotValidCredentialsException;
+import com.example.blogservice.exception.NotValidTokenException;
 import com.example.blogservice.exception.ResourceNotFoundException;
 import com.example.blogservice.mapper.UserMapper;
 import com.example.blogservice.model.Role;
@@ -38,11 +39,14 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Optional;
 
+import static com.example.blogservice.utils.ConstantUtil.Exception.NOT_VALID_TOKEN;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
 @Transactional(readOnly = true)
 public class UserServiceImpl implements UserService {
+
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final SequenceGeneratorService sequenceGeneratorService;
@@ -53,6 +57,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Cacheable(value = "user",key = "#id")
     public UserDtoResponse getById(Long id) {
+        log.debug("Get user by id : {}",id);
         return userRepository.findById(id)
                 .map(userMapper::mapToUserDtoResponse)
                 .orElseThrow(()->{
@@ -63,6 +68,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto getInnerUserById(Long id) {
+        log.debug("Get user for security by id : {}",id);
         return  userRepository.findById(id)
                 .map(userMapper::mapToUserDto)
                 .orElseThrow(()->{
@@ -73,7 +79,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Page<UserDtoResponse> findAll(Pageable pageable) {
-        log.info("Find all users");
+        log.debug("Find all users");
         return userRepository.findAll(pageable != null ?
                         pageable :
                         PageRequest.of(1, 3, Sort.by("id"))
@@ -84,7 +90,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public UserDtoResponse save(UserDtoRequest userDtoRequest, String password) {
-        log.info("Save user by :{}",userDtoRequest);
+        log.debug("Save user by :{} ",userDtoRequest);
         checkUniqueUsernameAndEmail(userDtoRequest);
 
         User user = userMapper.mapToUser(sequenceGeneratorService.generateSequence(User.SEQUENCE_NAME),userDtoRequest,
@@ -123,7 +129,7 @@ public class UserServiceImpl implements UserService {
     @CacheEvict(value = "user",key = "#userId")
     public void deleteById(Long userId, AuthenticatedUser authenticatedUser) {
         checkValidCredentials(userId,authenticatedUser);
-        log.info("Check existing user by userId : {} and delete id",userId);
+        log.debug("Check existing user by userId : {} and delete id",userId);
         Optional<User> optionalUser = userRepository.findById(userId);
         if (optionalUser.isPresent()){
             User user = optionalUser.get();
@@ -138,23 +144,25 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public boolean existsById(Long id) {
-        log.info("Check existing user by user id : {}",id);
+        log.debug("Check existing user by user id : {}",id);
         return userRepository.existsById(id);
     }
 
     @Override
     public UserDto getUserByUsername(String username) {
+        log.debug("Get user by username : {}",username);
         return userRepository.findUserByUsername(username)
                 .map(userMapper::mapToUserDto)
                 .orElseThrow(()->{
                     log.error("There is no user with username : {}",username);
-                    return new ResourceNotFoundException(User.class,"username",username);
+                    return new NotValidTokenException(NOT_VALID_TOKEN);
                 });
     }
 
     @Override
     @CachePut(value = "user",key = "#id")
     public UserDtoResponse changePasswordByUserId(Long id, String password, AuthenticatedUser authenticatedUser) {
+        log.debug("Changing password by user : {}", id);
         checkValidCredentials(id, authenticatedUser);
         return userRepository.findById(id)
                 .map(user ->{

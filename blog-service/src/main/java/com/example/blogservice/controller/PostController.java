@@ -183,7 +183,7 @@ public class PostController {
                                               @RequestBody MultipartFile file,
                                           @AuthenticationPrincipal AuthenticatedUser authenticatedUser){
         log.info("Edit file to post with id : {} and with file content-type : {}",postId,file.getContentType());
-        return postService.editFileToPost(postId,file,authenticatedUser);
+        return postService.replaceFileInPost(postId,file,authenticatedUser);
     }
 
     @DeleteMapping("/{postId}/file")
@@ -191,7 +191,7 @@ public class PostController {
     public void deleteFileFromPost(@Parameter(description = "Id of post for file to be deleted",required = true)
                                      @PathVariable Long postId,
                                    @AuthenticationPrincipal AuthenticatedUser authenticatedUser){
-        postService.deleteFileToPost(postId,authenticatedUser);
+        postService.deleteFileInPost(postId,authenticatedUser);
     }
 
     @GetMapping("/{postId}/file")

@@ -7,6 +7,7 @@ import com.mongodb.DBObject;
 import com.mongodb.client.gridfs.model.GridFSFile;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -19,6 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 @Transactional(readOnly = true)
 public class FileServiceImpl implements FileService {
     private final GridFsTemplate gridFsTemplate;
@@ -28,6 +30,8 @@ public class FileServiceImpl implements FileService {
     @Override
     @Transactional
     public ObjectId uploadFile(MultipartFile file) {
+        log.debug("Upload file with file name : {} , contentType: {}, size : {}",
+                file.getOriginalFilename(),file.getContentType(),file.getSize());
         DBObject data = new BasicDBObject();
         data.put("filesize",file.getSize());
 
@@ -40,6 +44,7 @@ public class FileServiceImpl implements FileService {
     @Override
     @SneakyThrows
     public LoadFile downloadFile(ObjectId id) {
+        log.debug("Download file with objectId : {}",id);
         GridFSFile gridFSFile = gridFsTemplate.findOne(new Query(Criteria.where("_id").is(id)));
         return LoadFile.builder()
                 .fileName(gridFSFile.getFilename())
@@ -51,7 +56,8 @@ public class FileServiceImpl implements FileService {
 
     @Override
     @Transactional
-    public void deleteFile(ObjectId file) {
-        gridFsTemplate.delete(new Query(Criteria.where("_id").is(file)));
+    public void deleteFile(ObjectId objectId) {
+        log.debug("Delete file with object id : {}",objectId);
+        gridFsTemplate.delete(new Query(Criteria.where("_id").is(objectId)));
     }
 }

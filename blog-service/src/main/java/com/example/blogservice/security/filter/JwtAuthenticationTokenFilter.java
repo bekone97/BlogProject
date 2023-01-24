@@ -1,10 +1,13 @@
 package com.example.blogservice.security.filter;
 
+import com.example.blogservice.handling.BlogApiErrorResponse;
 import com.example.blogservice.security.token.JwtAuthenticationToken;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -12,29 +15,33 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
 import org.springframework.security.web.util.matcher.RequestMatcher;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @Slf4j
 public class JwtAuthenticationTokenFilter extends AbstractAuthenticationProcessingFilter {
 
     public static final String TOKEN_PREFIX = "Bearer ";
-
-    public JwtAuthenticationTokenFilter(RequestMatcher requiresAuthenticationRequestMatcher) {
+    private final ObjectMapper objectMapper;
+    public JwtAuthenticationTokenFilter(RequestMatcher requiresAuthenticationRequestMatcher, ObjectMapper objectMapper) {
         super(requiresAuthenticationRequestMatcher);
+        this.objectMapper = objectMapper;
     }
 
     protected JwtAuthenticationTokenFilter(RequestMatcher requiresAuthenticationRequestMatcher,
-                                           AuthenticationManager authenticationManager) {
+                                           AuthenticationManager authenticationManager, ObjectMapper objectMapper) {
         super(requiresAuthenticationRequestMatcher, authenticationManager);
+        this.objectMapper = objectMapper;
     }
 
 
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response)
-            throws AuthenticationException, IOException, ServletException {
+            throws AuthenticationException {
        final String token = getJwtFromRequest(request);
        final JwtAuthenticationToken authToken = new JwtAuthenticationToken(token);
        return getAuthenticationManager().authenticate(authToken);
@@ -57,4 +64,15 @@ public class JwtAuthenticationTokenFilter extends AbstractAuthenticationProcessi
         chain.doFilter(request,response);
     }
 
+    @Override
+    protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, AuthenticationException failed)
+            throws IOException, ServletException {
+        log.error("Rejected access : {} for url : {}",failed.getMessage(),request.getRequestURL());
+        final BlogApiErrorResponse blogApiErrorResponse = new BlogApiErrorResponse(failed.getMessage());
+
+        response.setContentType(APPLICATION_JSON_VALUE);
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        response.getOutputStream().println(objectMapper.writeValueAsString(blogApiErrorResponse));
+        response.getOutputStream().flush();
+    }
 }
