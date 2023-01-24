@@ -8,6 +8,7 @@ import com.example.blogservice.event.ModelCreatedEvent;
 import com.example.blogservice.event.ModelDeletedEvent;
 import com.example.blogservice.event.ModelType;
 import com.example.blogservice.event.ModelUpdatedEvent;
+import com.example.blogservice.exception.NotValidCredentialsException;
 import com.example.blogservice.exception.ResourceNotFoundException;
 import com.example.blogservice.mapper.CommentMapper;
 import com.example.blogservice.model.Comment;
@@ -69,11 +70,12 @@ public class CommentServiceImpl implements CommentService {
     @Transactional
     public CommentDtoResponse save(CommentDtoRequest commentDtoRequest, Long postId, AuthenticatedUser authenticatedUser) {
         log.info("Save new comment by : {} to post with id : {}",commentDtoRequest,postId);
-
+        if (authenticatedUser==null)
+            throw new NotValidCredentialsException("User must be authenticated to save comment");
         if (postService.existsById(postId)) {
-            UserDtoResponse userComment = userService.getById(commentDtoRequest.getUserId());
+            UserDtoResponse userDtoResponse = userService.getById(commentDtoRequest.getUserId());
             Comment newComment = commentMapper.mapToComment(sequenceGeneratorService.generateSequence(
-                    Comment.SEQUENCE_NAME),userComment,commentDtoRequest,postId );
+                    Comment.SEQUENCE_NAME),userDtoResponse,commentDtoRequest);
             newComment=commentRepository.save(newComment);
             postService.addCommentToPost(postId,newComment);
             publishSave(newComment);
@@ -100,10 +102,8 @@ public class CommentServiceImpl implements CommentService {
                     return  new ResourceNotFoundException(Comment.class,"id",commentId);
                 });
         checkValidCredentials(postId,commentId, authenticatedUser);
-        if (!postService.existsByPostIdAndComment(postId,comment)){
-            throw new ResourceNotFoundException(Comment.class,"id",commentId,Post.class,"id",postId);
-        }
         comment = commentMapper.mapToComment(comment.getId(),comment.getUser(),commentDtoRequest);
+        publishUpdate(commentId);
         return commentMapper.mapToCommentDtoResponse(commentRepository.save(comment));
     }
 
@@ -119,9 +119,6 @@ public class CommentServiceImpl implements CommentService {
                     return  new ResourceNotFoundException(Comment.class,"id",commentId);
                 });
         checkValidCredentials(postId,commentId, authenticatedUser);
-        if (!postService.existsByPostIdAndComment(postId,comment)){
-            throw new ResourceNotFoundException(Comment.class, "id", commentId, Post.class, "id", postId);
-        }
         publishDelete(comment);
         commentRepository.delete(comment);
         
@@ -155,14 +152,16 @@ public class CommentServiceImpl implements CommentService {
 
 
     private void checkValidCredentials(Long postId, Long commentId, AuthenticatedUser authenticatedUser) {
+        if (authenticatedUser==null)
+            throw new NotValidCredentialsException("User must be authenticated");
         PostDtoResponse postDtoResponse = postService.getById(postId);
         boolean isValid = postDtoResponse.getComments().stream()
                 .filter(comment->comment.getId().equals(commentId))
                 .findFirst()
                 .map(comment-> comment.getUserDtoResponse().getUsername().equals(authenticatedUser.getUsername()) ||
                         authenticatedUser.getAuthorities().stream().anyMatch(authority->authority.getAuthority().equals("ROLE_ADMIN")))
-                .orElseThrow(RuntimeException::new);
+                .orElseThrow(()->new ResourceNotFoundException(Comment.class,"id",commentId,Post.class,"id",postId));
         if (!isValid)
-            throw new RuntimeException();
+            throw new NotValidCredentialsException("User has no enough permissions");
     }
 }
