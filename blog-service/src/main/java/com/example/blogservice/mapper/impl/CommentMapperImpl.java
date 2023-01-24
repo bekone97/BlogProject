@@ -20,15 +20,18 @@ public class CommentMapperImpl implements CommentMapper {
 
     @Override
     public CommentDtoResponse mapToCommentDtoResponse(Comment comment) {
-        CommentDtoResponse commentDtoResponse = modelMapper.map(comment, CommentDtoResponse.class);
-        commentDtoResponse.setUserDtoResponse(userMapper.mapToUserDtoResponse(comment.getUser()));
-        return commentDtoResponse;
+        if (comment!=null) {
+            CommentDtoResponse commentDtoResponse = modelMapper.map(comment, CommentDtoResponse.class);
+            commentDtoResponse.setUserDtoResponse(userMapper.mapToUserDtoResponse(comment.getUser()));
+            return commentDtoResponse;
+        }
+        return null;
     }
 
     @Override
     public Comment mapToComment(Long commentId,
                                 UserDtoResponse userComment,
-                                CommentDtoRequest commentDtoRequest, Long postId) {
+                                CommentDtoRequest commentDtoRequest) {
         Comment comment = modelMapper.map(commentDtoRequest,Comment.class);
         comment.setUser(userMapper.mapToUser(userComment));
         comment.setId(commentId);

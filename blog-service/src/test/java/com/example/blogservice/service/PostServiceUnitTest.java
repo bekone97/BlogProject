@@ -348,9 +348,10 @@ class PostServiceUnitTest {
         Post changedPost = Post.builder()
                 .id(1L)
                 .content("someContent")
+                .title("Yayaya")
                 .comments(List.of(comment))
                 .user(user)
-                .build();;
+                .build();
 
         when(postRepository.findById(1L)).thenReturn(Optional.of(post));
         when(postRepository.save(changedPost)).thenReturn(changedPost);
@@ -378,6 +379,7 @@ class PostServiceUnitTest {
         Post previousPost = Post.builder()
                 .id(1L)
                 .content("someContent")
+                .title("Yayaya")
                 .comments(List.of(comment))
                 .user(user)
                 .build();

@@ -169,9 +169,9 @@ public class UserServiceIntegrationTest extends DatabaseContainerInitializer{
     void deleteByIdFail() {
 
         ResourceNotFoundException actual = assertThrows(ResourceNotFoundException.class,
-                ()->userService.deleteById(user.getId(),authenticatedUser));
+                ()->userService.deleteById(100L,authenticatedUser));
 
-        assertTrue(actual.getMessage().contains("User wasn't found by id=1"));
+        assertTrue(actual.getMessage().contains("User wasn't found by id=100"));
     }
 
     @Test

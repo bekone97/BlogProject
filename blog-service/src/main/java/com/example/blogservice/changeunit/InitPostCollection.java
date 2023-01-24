@@ -18,7 +18,7 @@ public class InitPostCollection {
     public void beforeExecution(){
         mongoTemplate.createCollection("post", CollectionOptions.empty()
                         .validator(Validator.schema(MongoJsonSchema.builder()
-                                        .required("user,title")
+                                        .required("user","title")
                                 .properties(
                                         JsonSchemaProperty.int64("id"),
                                         JsonSchemaProperty.string("content"),

@@ -43,21 +43,9 @@ import static org.mockito.Mockito.*;
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class PostServiceIntegrationTest extends DatabaseContainerInitializer {
 
-    @TestConfiguration
-    static class TestConfig {
-
-        @Bean
-        public TaskExecutor taskExecutor(){
-            return new SyncTaskExecutor();
-        }
-    }
-
-
     @SpyBean
     private PostRepository postRepository;
 
-    @SpyBean
-    private PostMapper postMapper;
 
     @SpyBean
     private UserRepository userRepository;
@@ -65,12 +53,9 @@ public class PostServiceIntegrationTest extends DatabaseContainerInitializer {
     @SpyBean
     private SequenceGeneratorService sequenceGeneratorService;
 
-    @SpyBean
-    private FileService fileService;
-
-
     @Autowired
     private PostService postService;
+
     @Autowired
     private CommentRepository commentRepository;
 
@@ -89,7 +74,6 @@ public class PostServiceIntegrationTest extends DatabaseContainerInitializer {
     ModelCreatedEvent modelCreatedEvent;
     ModelUpdatedEvent modelUpdatedEvent;
     ModelDeletedEvent modelDeletedEvent;
-    AtomicLong atomicLong = new AtomicLong(1L);
     @BeforeEach
     public void setUp(){
         user=User.builder()
@@ -138,7 +122,8 @@ public class PostServiceIntegrationTest extends DatabaseContainerInitializer {
         modelCreatedEvent=null;
         modelDeletedEvent=null;
         modelUpdatedEvent=null;
-
+        postRepository.deleteAll();
+        userRepository.deleteAll();
     }
 
     @Test

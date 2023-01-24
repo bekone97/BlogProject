@@ -144,6 +144,7 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional
+    @CacheEvict(value = "posts", key = "#postId")
     public void addCommentToPost(Long postId, Comment newComment) {
        postRepository.findById(postId)
                 .map(post -> {

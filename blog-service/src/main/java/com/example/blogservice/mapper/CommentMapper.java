@@ -10,7 +10,7 @@ public interface CommentMapper {
 
     CommentDtoResponse mapToCommentDtoResponse(Comment comment);
 
-    Comment mapToComment(Long commentId, UserDtoResponse userComment, CommentDtoRequest commentDtoRequest, Long postId);
+    Comment mapToComment(Long commentId, UserDtoResponse userComment, CommentDtoRequest commentDtoRequest);
     Comment mapToComment(Long commentId, User user, CommentDtoRequest commentDtoRequest);
 
 }

@@ -331,8 +331,6 @@ class PostControllerTest {
         when(userService.loadUserByUsername(SUBJECT)).thenReturn(userDetails);
 
         mockMvc.perform(delete("/posts/{postId}",postId)
-                        .contentType(MediaType.APPLICATION_JSON_VALUE)
-                        .content(objectMapper.writeValueAsString(postDtoRequest))
                         .header(AUTHORIZATION, token))
                 .andExpect(status().isOk());
 

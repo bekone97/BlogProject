@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 public class CommentDtoResponse {
 
     @Schema(description = "Id of comment which applied application",implementation = Long.class,example = "1")
-    private Long Id;
+    private Long id;
 
     @Schema(description = "Text of comment",implementation = String.class)
     private String text;

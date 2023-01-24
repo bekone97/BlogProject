@@ -21,6 +21,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import static com.example.blogservice.utils.ConstantUtil.SwaggerResponse.*;
@@ -30,6 +31,7 @@ import static com.example.blogservice.utils.ConstantUtil.SwaggerResponse.*;
 @RequestMapping("posts/{postId}/comments")
 @RequiredArgsConstructor
 @Slf4j
+@Validated
 public class CommentController {
     private final CommentService commentService;
 
