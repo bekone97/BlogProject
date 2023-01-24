@@ -1,0 +1,9 @@
+FROM maven:3.8.3-openjdk-17 AS build
+WORKDIR /workspace/app
+COPY . /workspace/app/.
+RUN mvn -f /workspace/app/pom.xml clean package -pl :blog-service -am -DskipTests
+
+FROM openjdk:17-jdk-slim
+COPY --from=build /workspace/app/blog-service/target/blog-service-0.0.1-SNAPSHOT.jar /blog-service.jar
+EXPOSE 8080
+ENTRYPOINT ["java", "-jar", "/blog-service.jar"]

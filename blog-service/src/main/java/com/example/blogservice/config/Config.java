@@ -1,11 +1,13 @@
 package com.example.blogservice.config;
 
+import com.example.blogservice.converter.JsonFileConverter;
 import com.example.blogservice.model.User;
 import com.example.blogservice.props.InitUserProps;
 import com.google.common.cache.CacheBuilder;
 import io.mongock.runner.springboot.EnableMongock;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
@@ -31,7 +33,10 @@ import java.util.concurrent.TimeUnit;
 @EnableSpringDataWebSupport
 @EnableCaching
 public class Config {
+    @Value("${init.users.location}")
+    private String fileLocation;
     private final InitUserProps initUserProps;
+    private final JsonFileConverter jsonFileConverter;
     @Bean
     public PasswordEncoder passwordEncoder(){
         return new BCryptPasswordEncoder(12);
@@ -79,6 +84,6 @@ public class Config {
 
     @Bean
     public List<User> usersList(){
-        return initUserProps.getUsers();
+        return jsonFileConverter.readValueForList(fileLocation, User.class);
     }
 }

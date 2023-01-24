@@ -6,3 +6,7 @@ jwt:
 mongock:
   enabled: true
   migration-scan-package: com.example.blogservice
+
+init:
+  users:
+    location: some_wrong_file.json
